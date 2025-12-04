@@ -119,15 +119,26 @@ export function ProfileContent() {
             <div className="relative z-10">
                 <div className="bg-linear-to-b from-[#7F1D1D]/90 via-[#451010]/80 to-[#121212] p-8 pb-6 backdrop-blur-sm">
                     <div className="text-white text-3xl font-bold mb-4">Hồ Sơ</div>
-                    
-                    {/* Layout hiển thị chính thức (dùng dữ liệu từ state 'profile') */}
                     <div className="flex flex-row gap-10">
-                        <div className="shadow-2xl shadow-black/50 rounded-full shrink-0">
-                            <img 
-                                src={profile.avatar} 
-                                alt="Avatar" 
-                                className="w-48 h-48 rounded-full object-cover shadow-lg border-4 border-[#121212]"
-                            />
+                        <div className="relative group shrink-0 w-48 h-48 flex items-center justify-center">
+                            {/* animate-spin */}
+                            <div 
+                                className="absolute -inset-3 bg-[conic-gradient(transparent,transparent,#ef4444)] rounded-full animate-spin blur-md opacity-70"
+                                style={{ animationDuration: '3s' }}
+                            ></div>
+                            {/* LỚP NEON SHARP */}
+                            <div 
+                                className="absolute -inset-1 bg-[conic-gradient(transparent,transparent,#ff0000)] rounded-full animate-spin"
+                                style={{ animationDuration: '3s' }} 
+                            ></div>
+                            {/* ẢNH GỐC */}
+                            <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-[#121212] z-10">
+                                <img 
+                                    src={profile.avatar} 
+                                    alt="Avatar" 
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
                         </div>
                         <div className="flex flex-col">
                             <div className="flex flex-row items-center gap-2">
