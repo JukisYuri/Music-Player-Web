@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
     Home,
     Search,
@@ -44,12 +44,12 @@ export function HeaderBar({ onLogoutClick ,username = "Oleny"}) {
                 <div className="flex items-center">
                     <Link to="/" className="flex items-center gap-2 text-white hover:text-green-400 transition-colors p-1">
                         <Music size={26} className="text-green-500" />
-                        <span className="text-xl font-bold tracking-wider hidden sm:inline">MyMusicApp</span>
+                        <span className="text-xl font-bold tracking-wider hidden sm:inline">MusicPlayer</span>
                     </Link>
                 </div>
 
                 <div className="flex items-center gap-6 flex-1 justify-center mx-4">
-                    <Link to="/" className="text-neutral-400 hover:text-green-400 transition-colors p-1">
+                    <Link to="/index" className="text-neutral-400 hover:text-green-400 transition-colors p-1">
                         <Home size={22} />
                     </Link>
                     <div className="relative flex-1 max-w-md">
