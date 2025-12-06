@@ -1,6 +1,7 @@
 import { Login } from './pages/Login.jsx'
 import { Register } from './pages/Register.jsx'
 import { ForgotPassword } from './pages/Forgot-Password.jsx'
+import { Index } from './pages/Index.jsx'
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Profile } from './pages/Profile.jsx';
 
@@ -13,6 +14,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/index" element={<Index />}></Route>
       <Route path="/profile" element={<Profile />} />
     </Routes>
   )
