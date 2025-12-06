@@ -4,6 +4,7 @@ import { ForgotPassword } from './pages/Forgot-Password.jsx'
 import { Index } from './pages/Index.jsx'
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Profile } from './pages/Profile.jsx';
+import { OnBoarding } from './pages/Onboarding.jsx';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/index" element={<Index />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/onboarding" element={<OnBoarding />} />
     </Routes>
   )
 }
