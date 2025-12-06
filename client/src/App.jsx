@@ -8,13 +8,13 @@ import { Profile } from './pages/Profile.jsx';
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/profile" replace />} />
+      <Route path="/" element={<Navigate to="/index" replace />} />
       
       {/* Định nghĩa đường dẫn */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/index" element={<Index />}></Route>
+      <Route path="/index" element={<Index />} />
       <Route path="/profile" element={<Profile />} />
     </Routes>
   )
