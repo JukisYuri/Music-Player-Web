@@ -22,7 +22,7 @@ export function HeaderBar({ onLogoutClick ,username = "Oleny"}) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const dropdownItems = [
-        { name: 'Tài khoản', href: '/account', icon: UserCircle },
+        { name: 'Tài khoản', href: '/profile', icon: UserCircle },
         { name: 'Cài đặt', href: '/settings', icon: Settings },
         { name: 'Đăng xuất', href: '/logout', icon: LogOut, isLogout: true },
     ];
@@ -42,7 +42,7 @@ export function HeaderBar({ onLogoutClick ,username = "Oleny"}) {
             <div className=" h-full mx-auto px-6 flex items-center justify-between">
 
                 <div className="flex items-center">
-                    <Link to="/" className="flex items-center gap-2 text-white hover:text-green-400 transition-colors p-1">
+                    <Link to="/index" className="flex items-center gap-2 text-white hover:text-green-400 transition-colors p-1">
                         <Music size={26} className="text-green-500" />
                         <span className="text-xl font-bold tracking-wider hidden sm:inline">MusicPlayer</span>
                     </Link>

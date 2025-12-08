@@ -25,16 +25,6 @@ export function RegisterInput({ step = 'form', password, confirmPassword, setPas
             </div>
             {/* INPUT USERNAME */}
             <div className={`flex flex-col gap-3 transition-all duration-500 ease-in-out overflow-hidden mx-8 ${isOtpStep ? 'max-h-0 opacity-0 -translate-y-4' : 'max-h-[500px] opacity-100 translate-y-0'}`}>
-                <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium text-neutral-300 ml-1 flex flex-row gap-1 items-center"><CircleUser size={16} />Tên Người Dùng</label>
-                    <input 
-                        type="text" 
-                        className="w-full bg-neutral-800/50 border border-neutral-700/50 rounded-[5px] py-3.5 pl-2 pr-12 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 transition-all"
-                        placeholder="Nhập Tên Người Dùng" 
-                        required
-                    />
-                </div>
-
                 {/* INPUT PASSWORD */}
                 {/* relative div bao quanh input và button và absolute top-1/2 -translate-y-1/2 */}
                 <div className="flex flex-col gap-1.5">

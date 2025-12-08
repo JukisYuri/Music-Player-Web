@@ -3,10 +3,11 @@ import { PlayerBar } from '../components/player_bar.jsx';
 import { HeaderBar } from '../components/header_bar.jsx';
 import { Sidebar } from '../components/sidebar.jsx';
 import { LogoutConfirmModal } from '../components/logout_confirm_modal.jsx';
+import { PlaylistTracks } from '../components/playlist_and_album.jsx';
 import { Play, Clock, Music, Disc, Heart, MoreHorizontal } from 'lucide-react'; // Import thêm icon Disc, Heart
 
 const PlayingEqualizer = () => (
-    <div className="flex items-end gap-[2px] h-4 w-4 justify-center">
+    <div className="flex items-end gap-0.5 h-4 w-4 justify-center">
         <div className="w-[3px] bg-green-500 animate-[music-bar_0.5s_ease-in-out_infinite]"></div>
         <div className="w-[3px] bg-green-500 animate-[music-bar_0.7s_ease-in-out_infinite_0.1s]"></div>
         <div className="w-[3px] bg-green-500 animate-[music-bar_0.4s_ease-in-out_infinite_0.2s]"></div>
@@ -118,9 +119,9 @@ export function Index() {
                         {currentSong.cover ? (
                             <img src={currentSong.cover} alt="Banner" className="absolute inset-0 w-full h-full object-cover opacity-40 blur-md scale-110 group-hover:scale-100 transition-all duration-700"/>
                         ) : (
-                            <div className="absolute inset-0 bg-gradient-to-br from-green-900/30 to-neutral-900"></div>
+                            <div className="absolute inset-0 bg-linear-to-br from-green-900/30 to-neutral-900"></div>
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent"></div>
+                        <div className="absolute inset-0 bg-linear-to-t from-neutral-950 via-neutral-950/60 to-transparent"></div>
                         <div className="relative z-10 p-8 flex flex-col items-start w-full">
                             <p className="text-sm font-medium text-green-400 uppercase tracking-wider mb-2 flex items-center">
                                 <span className="inline-block w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
@@ -157,7 +158,7 @@ export function Index() {
                                             {isActive ? <PlayingEqualizer /> : <><span className="group-hover:hidden">{index + 1}</span><Play size={16} className="hidden group-hover:block text-white" /></>}
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-neutral-700 rounded overflow-hidden flex-shrink-0 relative">
+                                            <div className="w-10 h-10 bg-neutral-700 rounded overflow-hidden shrink-0 relative">
                                                 {song.cover ? <img src={song.cover} className="w-full h-full object-cover"/> : <div className="absolute inset-0 flex items-center justify-center"><Music size={16} className="text-neutral-500"/></div>}
                                             </div>
                                             <span className={`font-semibold text-base line-clamp-1 transition-colors ${isActive ? 'text-green-400' : 'text-white'}`}>{song.title}</span>
@@ -179,28 +180,7 @@ export function Index() {
                             <button className="text-sm text-neutral-400 hover:text-white transition-colors">Xem tất cả</button>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                            {albums.map((album) => (
-                                <div key={album.id} className="group bg-neutral-900/40 p-4 rounded-xl hover:bg-neutral-800 transition-all cursor-pointer">
-
-                                    <div className={`aspect-square w-full rounded-lg mb-4 shadow-lg bg-gradient-to-br ${album.color} flex items-center justify-center relative overflow-hidden group-hover:shadow-green-900/20 transition-all`}>
-
-                                        <Music size={48} className="text-white/50 group-hover:scale-110 transition-transform duration-300"/>
-
-
-                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                                            <button className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-black hover:scale-105 transition-transform shadow-lg translate-y-2 group-hover:translate-y-0 duration-300">
-                                                <Play size={24} fill="currentColor" className="ml-1"/>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Thông tin Album */}
-                                    <h3 className="font-bold text-white text-base truncate mb-1 group-hover:text-green-400 transition-colors">{album.title}</h3>
-                                    <p className="text-sm text-neutral-400 line-clamp-2">{album.artist}</p>
-                                </div>
-                            ))}
-                        </div>
+                        <PlaylistTracks albums={albums} />
                     </section>
                 </main>
             </div>

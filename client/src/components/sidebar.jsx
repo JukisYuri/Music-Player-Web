@@ -10,7 +10,7 @@ import {
 
 const navigation = [
     { name: 'Thư viện', href: '/library', icon: Library },
-    { name: 'Danh sách phát', href: '/playlists', icon: ListMusic },
+    { name: 'Danh sách phát', href: '/playlist', icon: ListMusic },
     { name: 'Khám phá', href: '/discover', icon: Compass },
 ];
 

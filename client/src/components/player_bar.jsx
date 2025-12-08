@@ -110,7 +110,7 @@ export function PlayerBar({
 
                 <div className="flex items-center gap-4 w-1/4">
                     <div
-                        className={`w-14 h-14 rounded-md flex-shrink-0 relative overflow-hidden shadow-lg border border-white/10 ${isPlaying ? 'animate-pulse-slow' : ''}`}>
+                        className={`w-14 h-14 rounded-md shrink-0 relative overflow-hidden shadow-lg border border-white/10 ${isPlaying ? 'animate-pulse-slow' : ''}`}>
                         {cover ? (
                             <img
                                 src={cover}
@@ -119,7 +119,7 @@ export function PlayerBar({
                             />
                         ) : (
                             <div
-                                className="w-full h-full bg-gradient-to-br from-neutral-700 to-neutral-800 flex items-center justify-center">
+                                className="w-full h-full bg-linear-to-br from-neutral-700 to-neutral-800 flex items-center justify-center">
                                 <Music size={24} className="text-neutral-500"/>
                             </div>
                         )}
