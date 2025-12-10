@@ -18,7 +18,7 @@ export function AlbumDetailView({ album }) {
                     <Music size={80} className="text-white/50"/>
                 </div>
                 <h2 className="text-2xl font-bold text-white mb-2">{album.title}</h2>
-                <p className="text-neutral-400 text-sm mb-">Được tạo cho Oleny • 50 bài hát</p>
+                <p className="text-neutral-400 text-sm mb-">Được tạo cho Oleny • {dummyTracks.length} bài hát</p>
                 
                 <div className="flex flex-col gap-3 mt-4">
                     <button className="w-full py-3 bg-green-600 text-white font-bold rounded-full hover:scale-105 transition-transform flex items-center justify-center gap-2 cursor-pointer">
