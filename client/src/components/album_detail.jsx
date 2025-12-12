@@ -28,7 +28,7 @@ export function AlbumDetailView({ album }) {
             </div>
             
             <div className="flex-1 bg-neutral-900/30 rounded-xl border border-white/5 overflow-hidden h-full flex flex-col">
-                 <div className="px-6 py-4 border-b border-white/5 bg-neutral-900/50 backdrop-blur-md sticky top-0 z-10 grid grid-cols-[50px_1fr_1fr_60px] text-neutral-400 text-sm font-medium">
+                 <div className="px-6 py-4 border-b border-white/5 bg-neutral-900/50 backdrop-blur-md sticky top-0 z-10 grid grid-cols-[50px_1fr_355px_35px] text-neutral-400 text-sm font-medium">
                     <div>Số</div>
                     <div>Tiêu đề</div>
                     <div className="hidden md:block">Album</div>

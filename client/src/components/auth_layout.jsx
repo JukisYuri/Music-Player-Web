@@ -21,8 +21,8 @@ export function AuthLayout({
                     {visualComponent}
                     <div className="flex flex-col gap-2 max-w-xs mt-3 ml-8">
                         <div className="flex flex-col gap-0.5 z-10 relative">
-                            <h2 className="text-3xl font-['Mulish'] font-bold">{headline}</h2>
-                            <h2 className="text-3xl font-['Mulish'] font-bold text-emerald-300">{highlightedHeadline}</h2>
+                            <h2 className="text-3xl font-['Mulish', _sans-serif] font-bold">{headline}</h2>
+                            <h2 className="text-3xl font-['Mulish', _sans-serif] font-bold text-emerald-300">{highlightedHeadline}</h2>
                         </div>
                         <h3 className="text-neutral-400 text-sm max-w-xs leading-relaxed z-10 relative">
                             {description}
