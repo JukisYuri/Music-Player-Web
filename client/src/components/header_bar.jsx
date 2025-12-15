@@ -23,7 +23,7 @@ export function HeaderBar({ onLogoutClick ,username = "Oleny"}) {
 
     const dropdownItems = [
         { name: 'Tài khoản', href: '/profile', icon: UserCircle },
-        { name: 'Cài đặt', href: '/settings', icon: Settings },
+        { name: 'Cài đặt', href: '/setting', icon: Settings },
         { name: 'Đăng xuất', href: '/logout', icon: LogOut, isLogout: true },
     ];
 

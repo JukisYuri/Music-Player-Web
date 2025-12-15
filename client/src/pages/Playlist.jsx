@@ -3,6 +3,7 @@ import { Sidebar } from '../components/sidebar.jsx';
 import { PlaylistContent } from '../components/playlist_content.jsx';
 import { HeaderBar } from '../components/header_bar.jsx';
 import { PlayerBar } from '../components/player_bar.jsx';
+import { LogoutConfirmModal } from '../components/logout_confirm_modal.jsx';
 
 export function Playlist() {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,6 +19,7 @@ export function Playlist() {
                 <PlaylistContent />
             </div>
             <PlayerBar />
+            <LogoutConfirmModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={() => setIsModalOpen(false)} />
         </div>
         </>
     )

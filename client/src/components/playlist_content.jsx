@@ -18,7 +18,7 @@ export function PlaylistContent() {
 
     return (
         <section className='flex flex-col px-8 py-4 h-[calc(100vh-160px)]'>
-            <div className="shrink-0 mb-6 min-h-10 flex items-center justify-between">
+            <div className="shrink-0 mb-2 min-h-10 flex items-center justify-between">
                 <h2 className='text-2xl font-bold text-white'>
                     {selectedAlbum ? 'Chi tiết Playlist' : 'Danh sách phát của bạn'}
                 </h2>

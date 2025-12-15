@@ -3,6 +3,7 @@ import { ProfileContent } from '../components/profile_content.jsx';
 import { HeaderBar } from '../components/header_bar.jsx';
 import { useState } from 'react';
 import { PlayerBar } from '../components/player_bar.jsx';
+import { LogoutConfirmModal } from '../components/logout_confirm_modal.jsx';
 
 export function Profile() {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,6 +19,7 @@ export function Profile() {
                 <ProfileContent />
             </div>
             <PlayerBar />
+            <LogoutConfirmModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={() => setIsModalOpen(false)} />
         </div>
         </>
     )

@@ -6,6 +6,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { Profile } from './pages/Profile.jsx';
 import { OnBoarding } from './pages/Onboarding.jsx';
 import { Playlist } from './pages/Playlist.jsx';
+import { Setting } from './pages/Setting.jsx';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
       <Route path="/profile" element={<Profile />} />
       <Route path="/onboarding" element={<OnBoarding />} />
       <Route path="/playlist" element={<Playlist/>} />
+      <Route path="/setting" element={<Setting/>} />
     </Routes>
   )
 }
