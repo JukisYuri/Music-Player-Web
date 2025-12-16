@@ -30,11 +30,13 @@ export function ForgotPasswordInput({ step = 'form', newPassword, confirmNewPass
                     <div className="relative">
                         <input 
                             type="password"
+                            minLength={8}
+                            maxLength={32}
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
                             className={`w-full bg-neutral-800/50 border border-neutral-700/50 rounded-[5px] py-3.5 pl-3 pr-10 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 transition-all 
                                 ${!isMatchWithoutLength && confirmNewPassword.length > 0 ? 'border-red-500' : ''}`}
-                            placeholder="*********" 
+                            placeholder="Mật khẩu phải từ 8-32 ký tự" 
                             required
                         />
                     </div>
@@ -44,6 +46,8 @@ export function ForgotPasswordInput({ step = 'form', newPassword, confirmNewPass
                     <div className="relative">
                         <input 
                             type="password"
+                            minLength={8}
+                            maxLength={32}
                             value={confirmNewPassword}
                             onChange={(e) => setConfirmNewPassword(e.target.value)}
                             className="w-full bg-neutral-800/50 border border-neutral-700/50 rounded-[5px] py-3.5 pl-3 pr-10 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 transition-all"
