@@ -23,7 +23,7 @@ export function RegisterInput({ step = 'form', password, confirmPassword, setPas
                     required
                 />
             </div>
-            {/* INPUT USERNAME */}
+            
             <div className={`flex flex-col gap-3 transition-all duration-500 ease-in-out overflow-hidden mx-8 ${isOtpStep ? 'max-h-0 opacity-0 -translate-y-4' : 'max-h-[500px] opacity-100 translate-y-0'}`}>
                 {/* INPUT PASSWORD */}
                 {/* relative div bao quanh input và button và absolute top-1/2 -translate-y-1/2 */}
@@ -32,11 +32,13 @@ export function RegisterInput({ step = 'form', password, confirmPassword, setPas
                     <div className="relative">
                         <input 
                             type="password"
+                            minLength={8}
+                            maxLength={32}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className={`w-full bg-neutral-800/50 border border-neutral-700/50 rounded-[5px] py-3.5 pl-3 pr-10 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 transition-all 
                                 ${!isMatchWithoutLength && confirmPassword.length > 0 ? 'border-red-500' : ''}`}
-                            placeholder="*********" 
+                            placeholder="Mật khẩu phải từ 8-32 ký tự" 
                             required
                         />
                     </div>
@@ -46,6 +48,8 @@ export function RegisterInput({ step = 'form', password, confirmPassword, setPas
                     <div className="relative">
                         <input 
                             type="password"
+                            minLength={8}
+                            maxLength={32}
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             className="w-full bg-neutral-800/50 border border-neutral-700/50 rounded-[5px] py-3.5 pl-3 pr-10 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 transition-all"
