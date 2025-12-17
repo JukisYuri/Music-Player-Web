@@ -4,6 +4,15 @@ import { useTranslation } from 'react-i18next';
 export function ForgotPasswordInput({ step = 'form', newPassword, confirmNewPassword, setNewPassword, setConfirmNewPassword, isMatchWithoutLength }) {
     const isOtpStep = step === 'otp'
     const { t } = useTranslation();
+
+    // Hàm kiểm tra OTP chỉ cho phép nhập số
+    const checkOtp = (e) => {
+        const value = e.target.value;
+        // Chỉ cho phép nhập số
+        const numericValue = value.replace(/[^0-9]/g, '');
+        e.target.value = numericValue;
+    }
+
     return (
         <>
             {/* INPUT EMAIL */}
@@ -69,6 +78,7 @@ export function ForgotPasswordInput({ step = 'form', newPassword, confirmNewPass
                         <input 
                             type="text"
                             maxLength={6}
+                            onInput={checkOtp}
                             className="w-full bg-neutral-800/50 border border-neutral-700/50 rounded-[5px] py-3.5 pl-3 pr-10 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 transition-all"
                             placeholder={t('forgot_password.otp_placeholder')}
                             required={isOtpStep}
