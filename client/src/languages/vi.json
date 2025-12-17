@@ -51,7 +51,10 @@
     "playlist": {
       "back_to_list": "Quay lại danh sách phát",
       "your_playlist": "Danh sách phát của bạn",
-      "details": "Chi tiết danh sách phát"
+      "details": "Chi tiết danh sách phát",
+      "play_now": "Phát ngay",
+      "description": "Được tạo cho",
+      "description2": "bài hát"
     },
     "home_page": {
       "load_data": "Đang tải dữ liệu...",

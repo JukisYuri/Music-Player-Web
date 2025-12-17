@@ -51,7 +51,10 @@
     "playlist": {
       "back_to_list": "Back to playlist",
       "your_playlist": "Your Playlist",
-      "details": "Playlist Details"
+      "details": "Playlist Details",
+      "play_now": "Play Now",
+      "description": "Created for",
+      "description2": "songs"
     },
     "home_page": {
       "load_data": "Loading data...",
