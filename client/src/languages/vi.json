@@ -1,0 +1,11 @@
+{
+    "settings": {
+      "title": "Cài đặt",
+      "description": "Quản lý các tùy chọn cài đặt của bạn",
+      "language": "Ngôn ngữ",
+      "lang_desc": "Chọn ngôn ngữ - Có hiệu lực ngay lập tức"
+    },
+    "home": {
+      "welcome": "Xin chào"
+    }
+  }

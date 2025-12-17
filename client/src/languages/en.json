@@ -1,0 +1,11 @@
+{
+    "settings": {
+      "title": "Settings",
+      "description": "Manage your settings options",
+      "language": "Language",
+      "lang_desc": "Select language - Effective immediately"
+    },
+    "home": {
+      "welcome": "Welcome"
+    }
+  }
