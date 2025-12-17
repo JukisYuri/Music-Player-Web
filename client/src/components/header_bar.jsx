@@ -7,9 +7,11 @@ import {
     Music,
     Settings,
     LogOut,
-    UserCircle
+    UserCircle,
+    Bell
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Chứa Logo, nút Home, Search và User Profile với Dropdown và Modal xác nhận Đăng xuất.
@@ -18,13 +20,13 @@ import { Link } from 'react-router-dom';
  */
 export function HeaderBar({ onLogoutClick ,username = "Oleny"}) {
     const userName = username;
-
+    const { t } = useTranslation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const dropdownItems = [
-        { name: 'Tài khoản', href: '/profile', icon: UserCircle },
-        { name: 'Cài đặt', href: '/setting', icon: Settings },
-        { name: 'Đăng xuất', href: '/logout', icon: LogOut, isLogout: true },
+        { name: t('header_bar.account'), href: '/profile', icon: UserCircle },
+        { name: t('header_bar.setting'), href: '/setting', icon: Settings },
+        { name: t('header_bar.logout'), href: '/logout', icon: LogOut, isLogout: true },
     ];
 
     const handleMenuToggle = () => {
@@ -56,10 +58,13 @@ export function HeaderBar({ onLogoutClick ,username = "Oleny"}) {
                         <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500" />
                         <input
                             type="text"
-                            placeholder="Tìm kiếm bài hát, nghệ sĩ, playlist..."
+                            placeholder={t('header_bar.search_placeholder')}
                             className="w-full bg-neutral-800 border border-neutral-700 rounded-full py-2 pl-10 pr-4 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/50 transition-all"
                         />
                     </div>
+                    <Link to="/notification" className="relative text-neutral-400 hover:text-green-400 transition-colors p-1">
+                        <Bell size={30} className="text-neutral-400 hover:text-green-400 transition-colors p-1"/>
+                    </Link>
                 </div>
 
                 <div className="relative">

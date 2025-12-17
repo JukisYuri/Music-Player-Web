@@ -1,5 +1,6 @@
 import {LogOut, X} from 'lucide-react';
 import {Link} from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 /**
  * LogoutConfirmModal: Hộp thoại xác nhận đăng xuất tùy chỉnh.
@@ -8,6 +9,7 @@ import {Link} from "react-router-dom";
  * @param {function} onConfirm - Hàm xử lý logic đăng xuất (khi xác nhận).
  */
 export function LogoutConfirmModal({isOpen, onClose, onConfirm}) {
+    const { t } = useTranslation();
 
     const overlayClass = `
         fixed inset-0 z-50 flex justify-center items-center
@@ -32,7 +34,7 @@ export function LogoutConfirmModal({isOpen, onClose, onConfirm}) {
                 <div className="flex justify-between items-center border-b border-neutral-700 pb-3 mb-4">
                     <h3 className="text-xl font-bold text-white flex items-center">
                         <LogOut size={24} className="text-red-500 mr-2"/>
-                        Xác nhận Đăng xuất
+                        {t('logout_confirm_modal.title')}
                     </h3>
                     <button
                         onClick={onClose}
@@ -44,22 +46,21 @@ export function LogoutConfirmModal({isOpen, onClose, onConfirm}) {
                 </div>
 
                 <p className="text-neutral-300 mb-6">
-                    Bạn có chắc chắn muốn đăng xuất khỏi Music Player không? Bạn sẽ cần phải đăng nhập lại để tiếp tục
-                    nghe nhạc.
+                    {t('logout_confirm_modal.message')}
                 </p>
                 <div className="flex justify-end gap-3">
                     <button
                         onClick={onClose}
                         className="px-4 py-2 text-sm font-semibold text-white rounded-lg bg-neutral-700 hover:bg-neutral-600 transition-colors cursor-pointer"
                     >
-                        Hủy
+                        {t('global.cancel')}
                     </button>
                     <Link to="/login">
                         <button
                             onClick={onConfirm}
                             className="px-4 py-2 text-sm font-semibold text-white rounded-lg bg-red-600 hover:bg-red-700 transition-colors cursor-pointer"
                         >
-                            Đăng xuất
+                            {t('global.confirm')}
                         </button>
                     </Link>
                 </div>

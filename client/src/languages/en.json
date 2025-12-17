@@ -1,0 +1,73 @@
+{
+    "settings": {
+      "title": "Settings",
+      "description": "Manage your settings options",
+      "language": "Language",
+      "lang_desc": "Select language - Effective immediately"
+    },
+    "global": {
+      "cancel": "Cancel",
+      "save": "Save",
+      "confirm": "Confirm"
+    },
+    "home": {
+      "welcome": "Welcome"
+    },
+    "header_bar": {
+      "account": "Account",
+      "setting": "Setting",
+      "logout": "Logout",
+      "search_placeholder": "Search songs, artists, albums..."
+    },
+    "sidebar": {
+      "hello": "Hello",
+      "description": "What genre do you want to listen to today?",
+      "items": "Items",
+      "library": "Library",
+      "playlists": "Playlists",
+      "discover": "Discover",
+      "genres": "Themes and Genres"
+    },
+    "profile": {
+      "title": "Profile",
+      "edit_profile": "Edit",
+      "followers": "followers",
+      "listened_songs": "List of songs you often listen to",
+      "visible_for_you": "Visible only to you",
+      "following": "Following",
+      "followed": "followed",
+      "no_followed": "You are not following anyone",
+      "edit_profile2": "Edit Information"
+    },
+    "logout_confirm_modal": {
+      "title": "Confirm Logout",
+      "message": "Are you sure you want to log out of Music Player? You will need to log in again to continue listening to music"
+    },
+    "notification": {
+      "title": "Notifications",
+      "description" : "The latest notifications will appear here",
+      "no_notification": "You currently have no notifications"
+    },
+    "playlist": {
+      "back_to_list": "Back to playlist",
+      "your_playlist": "Your Playlist",
+      "details": "Playlist Details",
+      "play_now": "Play Now",
+      "description": "Created for",
+      "description2": "songs"
+    },
+    "home_page": {
+      "load_data": "Loading data...",
+      "please_wait": "Please wait",
+      "now_playing": "Now Playing",
+      "popular_music": "Top Hits",
+      "popular_albums": "Popular Albums",
+      "title_music": "Song",
+      "title_artist": "Artist",
+      "see_all": "See All",
+      "number": "#"
+    },
+    "player_bar": {
+      "current_song": "Please select a song"
+    }
+  }

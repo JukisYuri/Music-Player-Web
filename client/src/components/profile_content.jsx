@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { PenLine, X, Save, Camera } from 'lucide-react';
 import { ProfileListSong } from './profile_listsong';
+import { useTranslation } from 'react-i18next';
 
 export function ProfileContent() {
+    const { t } = useTranslation();
     // Quản lý dữ liệu Profile (State)
     const [profile, setProfile] = useState({
         name: "Jukis Yuri",
@@ -47,7 +49,7 @@ export function ProfileContent() {
                             </button>
 
                             <div className="text-white text-xl font-bold mb-6 flex items-center gap-2">
-                                <PenLine size={20} /> Chỉnh sửa thông tin
+                                <PenLine size={20} /> {t('profile.edit_profile2')}
                             </div>
 
                            
@@ -102,12 +104,12 @@ export function ProfileContent() {
                             <button 
                                 onClick={() => setIsEditing(false)}
                                 className="px-6 py-2 rounded-full text-white font-medium hover:bg-white/10 transition-colors cursor-pointer">
-                                Hủy
+                                {t('global.cancel')}
                             </button>
                             <button 
                                 onClick={handleSave}
                                 className="px-8 py-2 rounded-full bg-white text-black font-semibold hover:bg-neutral-200 transition-colors flex items-center gap-2 cursor-pointer">
-                                <Save size={16} /> Lưu
+                                <Save size={16} /> {t('global.save')}
                             </button>
                         </div>
                     </div>
@@ -118,7 +120,7 @@ export function ProfileContent() {
             {/* --- MAIN CONTENT (VIEW MODE) --- */}
             <div className="relative z-10">
                 <div className="bg-linear-to-b from-[#7F1D1D]/90 via-[#451010]/80 to-[#121212] p-8 pb-6 backdrop-blur-sm">
-                    <div className="text-white text-3xl font-bold mb-4">Hồ Sơ</div>
+                    <div className="text-white text-3xl font-bold mb-4">{t('profile.title')}</div>
                     <div className="flex flex-row gap-10">
                         <div className="relative group shrink-0 w-48 h-48 flex items-center justify-center">
                             {/* animate-spin */}
@@ -154,17 +156,17 @@ export function ProfileContent() {
                                     className="cursor-pointer flex items-center gap-2 bg-white/10 border border-white/20 hover:border-white text-white text-sm font-bold tracking-widest uppercase py-2 px-6 rounded-full transition-all duration-300 ease-in-out hover:scale-105 hover:bg-white/20 backdrop-blur-md"
                                 >
                                     <PenLine size={16} />
-                                    Chỉnh sửa
+                                    {t('profile.edit_profile')}
                                 </button>
-                                <p className='text-white text-sm font-medium opacity-70'>0 người theo dõi</p>
+                                <p className='text-white text-sm font-medium opacity-70'>0 {t('profile.followers')}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div className='mt-8 ml-8'>
-                    <p className='text-white text-2xl font-bold'>Danh sách các bài bạn thường nghe</p>
-                    <p className='text-neutral-400 text-base font-normal mt-2'>Chỉ hiển thị riêng cho bạn</p>
+                    <p className='text-white text-2xl font-bold'>{t('profile.listened_songs')}</p>
+                    <p className='text-neutral-400 text-base font-normal mt-2'>{t('profile.visible_for_you')}</p>
                 </div>
 
                 <div className="flex flex-col mx-2 mt-4 gap-2">
@@ -173,10 +175,10 @@ export function ProfileContent() {
 
                 <div className='mt-8 mx-8 flex flex-col gap-2 pb-10'>
                     <div className='flex flex-row gap-3 items-baseline'>
-                        <p className='text-white text-2xl font-bold'>Đang theo dõi</p>
-                        <p className='text-neutral-400 text-base font-normal'>0 theo dõi</p>
+                        <p className='text-white text-2xl font-bold'>{t('profile.following')}</p>
+                        <p className='text-neutral-400 text-base font-normal'>0 {t('profile.followed')}</p>
                     </div>
-                    <p className='text-neutral-500 text-sm font-normal'>Bạn chưa theo dõi ai cả</p>
+                    <p className='text-neutral-500 text-sm font-normal'>{t('profile.no_followed')}</p>
                 </div>
             </div>
         </div>
