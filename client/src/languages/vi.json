@@ -5,7 +5,66 @@
       "language": "Ngôn ngữ",
       "lang_desc": "Chọn ngôn ngữ - Có hiệu lực ngay lập tức"
     },
+    "global": {
+      "cancel": "Huỷ",
+      "save": "Lưu",
+      "confirm": "Xác nhận"
+    },
     "home": {
       "welcome": "Xin chào"
+    },
+    "header_bar": {
+      "account": "Tài khoản",
+      "setting": "Cài đặt",
+      "logout": "Đăng xuất",
+      "search_placeholder": "Tìm kiếm bài hát, nghệ sĩ, album..."
+    },
+    "sidebar": {
+      "hello": "Chào",
+      "description": "Hôm nay bạn muốn nghe thể loại gì?",
+      "items": "Các mục",
+      "library": "Thư viện",
+      "playlists": "Danh sách phát",
+      "discover": "Khám phá",
+      "genres": "Chủ Đề và Thể Loại"
+    },
+    "profile": {
+      "title": "Hồ Sơ",
+      "edit_profile": "Chỉnh sửa",
+      "followers": "người theo dõi",
+      "listened_songs": "Danh sách các bài bạn thường nghe",
+      "visible_for_you": "Chỉ hiển thị riêng cho bạn",
+      "following": "Đang theo dõi",
+      "followed": "theo dõi",
+      "no_followed": "Bạn chưa theo dõi ai cả",
+      "edit_profile2": "Chỉnh sửa thông tin"
+    }, 
+    "logout_confirm_modal": {
+      "title": "Xác nhận Đăng xuất",
+      "message": "Bạn có chắc chắn muốn đăng xuất khỏi Music Player không? Bạn sẽ cần phải đăng nhập lại để tiếp tục nghe nhạc"
+    },
+    "notification": {
+      "title": "Thông báo",
+      "description" : "Các thông báo mới nhất sẽ hiện ở đây",
+      "no_notification": "Hiện tại bạn chưa có thông báo nào"
+    },
+    "playlist": {
+      "back_to_list": "Quay lại danh sách phát",
+      "your_playlist": "Danh sách phát của bạn",
+      "details": "Chi tiết danh sách phát"
+    },
+    "home_page": {
+      "load_data": "Đang tải dữ liệu...",
+      "please_wait": "Vui lòng đợi",
+      "now_playing": "Đang phát",
+      "popular_music": "Top Thịnh Hành",
+      "popular_albums": "Album Phổ Biến",
+      "title_music": "Tiêu đề",
+      "title_artist": "Nghệ sĩ",
+      "see_all": "Xem tất cả",
+      "number": "Số"
+    },
+    "player_bar": {
+      "current_song": "Vui lòng chọn bài hát"
     }
   }

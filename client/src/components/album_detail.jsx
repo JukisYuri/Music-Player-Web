@@ -1,8 +1,10 @@
 import { ArrowLeft, Clock } from "lucide-react";
 import { Play } from "lucide-react";
 import { Music } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function AlbumDetailView({ album }) {
+    const { t } = useTranslation();
     const dummyTracks = Array.from({ length: 20 }).map((_, i) => ({
         id: i,
         title: `Bài hát Demo ${i + 1}`,
@@ -29,8 +31,8 @@ export function AlbumDetailView({ album }) {
             
             <div className="flex-1 bg-neutral-900/30 rounded-xl border border-white/5 overflow-hidden h-full flex flex-col">
                  <div className="px-6 py-4 border-b border-white/5 bg-neutral-900/50 backdrop-blur-md sticky top-0 z-10 grid grid-cols-[50px_1fr_355px_35px] text-neutral-400 text-sm font-medium">
-                    <div>Số</div>
-                    <div>Tiêu đề</div>
+                    <div>{t('home_page.number')}</div>
+                    <div>{t('home_page.title_music')}</div>
                     <div className="hidden md:block">Album</div>
                     <div className="text-right"><Clock size={16} /></div>
                 </div>

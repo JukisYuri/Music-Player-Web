@@ -4,6 +4,7 @@ import { AlbumDetailView } from './album_detail.jsx';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 const albums = [
     { id: 1, title: "Danh Sách 1", color: "from-blue-600 to-purple-600" },
@@ -14,20 +15,21 @@ const albums = [
 ];
 
 export function PlaylistContent() {
+    const { t } = useTranslation();
     const [selectedAlbum, setSelectedAlbum] = useState(null);
 
     return (
         <section className='flex flex-col px-8 py-4 h-[calc(100vh-160px)]'>
             <div className="shrink-0 mb-2 min-h-10 flex items-center justify-between">
                 <h2 className='text-2xl font-bold text-white'>
-                    {selectedAlbum ? 'Chi tiết Playlist' : 'Danh sách phát của bạn'}
+                    {selectedAlbum ? t('playlist.details') : t('playlist.your_playlist')}
                 </h2>
                 
                 {selectedAlbum && (
                     <button 
                         onClick={() => setSelectedAlbum(null)} // Sửa cú pháp onClick
                         className="py-2 px-4 bg-white/10 text-white font-medium rounded-full hover:bg-white/20 transition-colors flex items-center justify-center gap-2 cursor-pointer text-sm">
-                        <ArrowLeft size={16} /> Quay lại danh sách
+                        <ArrowLeft size={16} /> {t('playlist.back_to_list')}
                     </button>
                 )}
             </div>

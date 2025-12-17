@@ -9,7 +9,7 @@ import i18n from "../i18n.js";
 export function Setting() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { t } = useTranslation();
-    const [selectedLanguage, setSelectedLanguage] = useState('vi');
+    const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
 
     const handleLanguageChange = (e) => {
         const language = e.target.value;

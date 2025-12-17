@@ -5,6 +5,7 @@ import { Sidebar } from '../components/sidebar.jsx';
 import { LogoutConfirmModal } from '../components/logout_confirm_modal.jsx';
 import { PlaylistTracks } from '../components/playlist_and_album.jsx';
 import { Play, Clock, Music, Disc, Heart, MoreHorizontal } from 'lucide-react'; // Import thêm icon Disc, Heart
+import { useTranslation } from 'react-i18next';
 
 const PlayingEqualizer = () => (
     <div className="flex items-end gap-0.5 h-4 w-4 justify-center">
@@ -37,11 +38,12 @@ const albums = [
 ];
 
 export function Index() {
+    const { t } = useTranslation();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [playlist, setPlaylist] = useState(initialSongs);
     const [currentSong, setCurrentSong] = useState({
-        title: "Đang tải dữ liệu...",
-        artist: "Vui lòng đợi",
+        title: t('home_page.load_data'),
+        artist: t('home_page.please_wait'),
         audioUrl: "",
         cover: ""
     });
@@ -125,7 +127,7 @@ export function Index() {
                         <div className="relative z-10 p-8 flex flex-col items-start w-full">
                             <p className="text-sm font-medium text-green-400 uppercase tracking-wider mb-2 flex items-center">
                                 <span className="inline-block w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                                Đang phát
+                                {t('home_page.now_playing')}
                             </p>
                             <h1 className="text-4xl md:text-5xl font-black text-white leading-tight mb-2 line-clamp-2">{currentSong.title}</h1>
                             <p className="text-xl text-neutral-300 font-medium">{currentSong.artist}</p>
@@ -135,12 +137,12 @@ export function Index() {
                     {/* === TRACKLIST === */}
                     <section className="mb-12">
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold flex items-center gap-2">Top Thịnh Hành</h2>
+                            <h2 className="text-2xl font-bold flex items-center gap-2">{t('home_page.popular_music')}</h2>
                         </div>
                         <div className="grid grid-cols-[50px_4fr_3fr_1fr] gap-4 px-4 py-2 border-b border-neutral-800 text-sm text-neutral-400 font-medium uppercase tracking-wider">
                             <div className="text-center">#</div>
-                            <div>Tiêu đề</div>
-                            <div>Nghệ sĩ</div>
+                            <div>{t('home_page.title_music')}</div>
+                            <div>{t('home_page.title_artist')}</div>
                             <div className="text-right flex justify-end items-center"><Clock size={16}/></div>
                         </div>
                         <div className="flex flex-col mt-2">
@@ -175,9 +177,9 @@ export function Index() {
                     <section>
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold flex items-center gap-2">
-                                <Disc className="text-green-500"/> Album Phổ Biến
+                                <Disc className="text-green-500"/> {t('home_page.popular_albums')}
                             </h2>
-                            <button className="text-sm text-neutral-400 hover:text-white transition-colors">Xem tất cả</button>
+                            <button className="text-sm text-neutral-400 hover:text-white transition-colors">{t('home_page.see_all')}</button>
                         </div>
 
                         <PlaylistTracks albums={albums} />

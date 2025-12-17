@@ -1,13 +1,15 @@
 import {useState, useRef, useEffect} from 'react';
 import {Play, Pause, SkipBack, SkipForward, Volume2, Maximize2, Volume1, VolumeX, Music} from 'lucide-react';
 import {SoundWaves} from './soundwave.jsx';
+import { useTranslation } from 'react-i18next';
 
 export function PlayerBar({
-                              currentSong = "Vui lòng chọn bài hát",
+                              currentSong = 'player_bar.current_song',
                               artist = "...",
                               audioUrl = "",
                               cover = ""
                           }) {
+    const { t } = useTranslation();
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -126,7 +128,7 @@ export function PlayerBar({
                     </div>
 
                     <div className="overflow-hidden">
-                        <p className="text-sm font-semibold truncate text-white hover:underline cursor-pointer">{currentSong}</p>
+                        <p className="text-sm font-semibold truncate text-white hover:underline cursor-pointer">{t(currentSong)}</p>
                         <p className="text-xs text-neutral-400 truncate hover:text-white cursor-pointer transition-colors">{artist}</p>
                     </div>
                 </div>
