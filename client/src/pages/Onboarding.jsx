@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { CircleUser, Camera, AtSign, Sparkles, Check, Music } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export function OnBoarding() {
+    const { t } = useTranslation();
+    const navigate = useNavigate();
     const [displayName, setDisplayName] = useState("");
     const [username, setUsername] = useState("");
     const [avatarPreview, setAvatarPreview] = useState(null);
@@ -18,6 +22,12 @@ export function OnBoarding() {
         }
     };
 
+    const handleOnBoardingSubmit = (e) => {
+        e.preventDefault();
+        console.log("Đã hoàn tất onboarding với:", { displayName, username, avatarPreview });
+        navigate('/index');
+    }
+
     return (
         // Thêm flex-col (mobile) và lg:flex-row (desktop), justify-center, gap-10, p-4 để tránh sát lề
         <div className="relative w-full min-h-screen overflow-y-hidden overflow-x-hidden bg-black flex flex-col lg:flex-row items-center justify-center gap-12 p-6">
@@ -32,9 +42,9 @@ export function OnBoarding() {
                     
                     <div className="text-center mb-8">
                         <h2 className="text-3xl font-['Mulish'] font-bold text-white mb-2 flex items-center justify-center gap-2">
-                            Chào Mừng <Sparkles className="text-emerald-400" size={24} />
+                            {t('onboarding.welcome_title')} <Sparkles className="text-emerald-400" size={24} />
                         </h2>
-                        <h4 className="text-neutral-400 text-sm">Xây dựng định danh âm nhạc của riêng bạn</h4>
+                        <h4 className="text-neutral-400 text-sm">{t('onboarding.welcome_desc')}</h4>
                     </div>
 
                     {/* Avatar Upload Section */}
@@ -57,7 +67,7 @@ export function OnBoarding() {
                         
                         {/* Input Display Name */}
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider ml-1">Tên hiển thị</label>
+                            <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider ml-1">{t('onboarding.display_name')}</label>
                             <div className="relative">
                                 <Music className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={18} />
                                 <input 
@@ -75,7 +85,7 @@ export function OnBoarding() {
                         {/* Input Username */}
                         <div className="flex flex-col gap-1.5">
                             <div className="flex justify-between ml-1">
-                                <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Username (Duy nhất)</label>
+                                <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">{t('onboarding.username')}</label>
                             </div>
                             <div className="relative group">
                                 <AtSign className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${username ? 'text-emerald-400' : 'text-neutral-500'}`} size={18} />
@@ -93,28 +103,28 @@ export function OnBoarding() {
                                     </div>
                                 )}
                             </div>
-                            <p className="text-[12px] text-red-500 pl-1">
-                                Tên định dạng này sẽ là duy nhất, và không thể thay đổi sau này
+                            <p className="text-[13px] text-red-500 pl-1">
+                                {t('onboarding.warning')}
                         </p>
                         </div>
                     </div>
                     {/* Submit Button */}
-                    <button
+                    <button onClick={handleOnBoardingSubmit}
                             disabled={!(username && displayName)}
                             className={`w-full py-4 rounded-xl font-bold text-sm tracking-wide transition-all transform duration-200 mt-8 text-neutral-300
                             ${username && displayName
                                 ? 'bg-green-600 hover:bg-green-700 cursor-pointer outline-green-700' 
                                 : 'bg-neutral-800 text-neutral-600 cursor-not-allowed outline'
                             }`}>
-                            HOÀN TẤT & KHÁM PHÁ
+                        {t('onboarding.submit')}
                     </button>
                 </div>
             </div>
 
             {/* Preview Section */}
             <div className="relative w-full max-w-[600px] overflow-hidden shrink-0"> 
-                <h2 className="text-lg text-emerald-300 mb-2 font-semibold text-center lg:text-left">Thông tin này sẽ được hiển thị trong trang thông tin tài khoản</h2>
-                <div className="bg-linear-to-b from-[#27272a] via-[#18181b] to-[#000000] p-8 pb-10 rounded-[10px] border border-white/10">
+                <h2 className="text-lg text-emerald-300 mb-2 font-semibold text-center lg:text-left">{t('onboarding.remind_display')}</h2>
+                <div className="bg-black/60 backdrop-blur-xl p-8 pb-10 rounded-2xl border-3 border-white/10 shadow-2xl">
                     <div className="flex flex-row gap-10 items-start">
                         
                         {/* 1. AVATAR PREVIEW */}

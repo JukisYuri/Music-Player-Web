@@ -3,9 +3,13 @@ import { RegisterInput } from '../components/register_box.jsx';
 import { Link } from 'react-router-dom'
 import { AuthLayout } from '../components/auth_layout.jsx';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 export function Register() {
+    const { t } = useTranslation();
     const [step, setStep] = useState('form') // 'form' hoặc 'otp'
+    const navigate = useNavigate();
 
     // Kiểm tra trực tiếp password và confirmPassword
     const [password, setPassword] = useState("")
@@ -29,6 +33,7 @@ export function Register() {
         }
         return () => clearInterval(interval);
         }, [isActive, timeLeft]);
+
         const handleFormSubmit = (e) => {
         e.preventDefault();
         if (step === 'form') {
@@ -37,29 +42,29 @@ export function Register() {
             setTimeLeft(60); 
             setIsActive(true);
         } else {
-            alert("Đổi mật khẩu thành công!");
+            alert("Đăng kí thành công!");
+            navigate('/onboarding');
         }
     }
 
     const handleResendOtp = () => {
-        console.log("Resending OTP...");
         setTimeLeft(60);
         setIsActive(true);
     }
 
     const content = step === 'form' ? {
-        headline: "Giai Điệu Của Bạn",
-        highlightedHeadline: "Kết Nối Cảm Xúc",
-        description: "Tận hưởng chất lượng âm thanh chuẩn studio và không gian nghe nhạc không bị làm phiền. Tham gia ngay!",
-        formTitle: "Gia Nhập Thế Giới Nhạc",
-        formSubtitle: "Tạo tài khoản để xây dựng playlist và gu âm nhạc riêng ngay hôm nay"
+        headline: t('register.step1_hero_title'),
+        highlightedHeadline: t('register.step1_hero_highlight'),
+        description: t('register.step1_hero_desc'),
+        formTitle: t('register.step1_title'),
+        formSubtitle: t('register.step1_subtitle')
     } : {
-        headline: "Sắp Hoàn Tất!",
-        highlightedHeadline: "Xác Thực Danh Tính",
-        description: "Chỉ còn một bước nữa. Hãy kiểm tra hộp thư đến để lấy mã kích hoạt.",
-        formTitle: "Nhập Mã Xác Nhận",
-        formSubtitle: "Chúng tôi đã gửi mã OTP 6 số đến email của bạn"
-    }
+        headline: t('register.step2_hero_title'),
+        highlightedHeadline: t('register.step2_hero_highlight'),
+        description: t('register.step2_hero_desc'),
+        formTitle: t('register.step2_title'),
+        formSubtitle: t('register.step2_subtitle')
+    };
     
     return (
         <AuthLayout
@@ -84,7 +89,7 @@ export function Register() {
                     <div className={`flex items-center justify-between text-xs text-neutral-400 mx-8 transition-all duration-500 ${step === 'otp' ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100 h-auto'}`}>
                         <label className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
                             <input type="checkbox" className="w-3.5 h-3.5 rounded bg-neutral-800 border-neutral-700 checked:bg-green-500 checked:border-green-500 focus:ring-0 focus:ring-offset-0 accent-green-500" />
-                            Tôi đồng ý với Điều khoản dịch vụ và Chính sách bảo mật
+                            {t('register.terms_agree')}
                         </label>
                     </div>
                     {step === 'otp' && (
@@ -96,10 +101,10 @@ export function Register() {
                                 className={`font-medium transition-colors ${
                                     isActive 
                                     ? 'text-neutral-500 cursor-not-allowed' 
-                                    : 'text-green-500 hover:text-green-400 hover:underline'
+                                    : 'text-green-500 hover:text-green-400 hover:underline cursor-pointer'
                                 }`}
                             >
-                                {isActive ? `Gửi lại mã sau (${timeLeft}s)` : 'Gửi lại mã xác thực'}
+                                {isActive ? t('register.resend_otp_wait', { seconds: timeLeft }) : t('register.resend_otp')}
                             </button>
                         </div>
                     )}
@@ -107,26 +112,26 @@ export function Register() {
                         disabled={!isMatch}
                         type="submit"
                         className={`w-110 bg-green-600 hover:bg-green-700 text-white font-medium py-3.5 rounded-[5px] mt-6 mx-8 transition-colors ${!isMatch ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-                        {step === 'form' ? 'Đăng Ký' : 'Xác Nhận'}
+                        {step === 'form' ? t('register.submit_register') : t('register.submit_confirm')}
                     </button>
                     <div className="mt-10 mb-4 text-center text-xs text-neutral-400">
                         { step === 'form' ? (
                             <>
-                                Đã có tài khoản?{' '}
+                                {t('register.have_account')}{' '}
                                 <Link 
                                     to="/login" 
                                     className="text-white font-medium hover:underline hover:text-green-400 transition-colors">
-                                    Đăng nhập tại đây
+                                    {t('register.login_link')}
                                 </Link>
                             </>
                         ) : (
                             <>
-                            Nhập sai thông tin?{' '}
+                            {t('register.wrong_info')}{' '}
                             <button 
                                 type="button"
                                 onClick={() => setStep('form')}
                                 className="text-white font-medium hover:underline hover:text-green-400 transition-colors cursor-pointer">
-                                Quay lại chỉnh sửa
+                                {t('register.back_edit')}
                             </button>
                         </>
                         )}

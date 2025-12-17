@@ -4,10 +4,29 @@ import { CycleBackground } from '../components/cycle';
 import { Link } from 'react-router-dom';
 import { AuthLayout } from '../components/auth_layout.jsx';
 import { useGoogleLogin } from '@react-oauth/google';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 export function Login() {
+    const { t } = useTranslation();
     const [showPassword, setShowPassword] = useState(false);
+    const navigate = useNavigate();
+
+    const handleLoginSubmit = async (e) => {
+        e.preventDefault(); // Chặn việc load lại trang mặc định của form
+        try {
+            console.log("Đang xử lý đăng nhập...");
+            const isSuccess = true; 
+            if (isSuccess) {
+                navigate('/index'); 
+            }
+        } catch (error) {
+            console.error("Đăng nhập thất bại", error);
+            alert("Sai thông tin đăng nhập!");
+        }
+    };
+    
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
           console.log(tokenResponse); 
@@ -32,13 +51,13 @@ export function Login() {
     return (
         <AuthLayout
             visualComponent={<CycleBackground />}
-            headline="Âm Nhạc"
-            highlightedHeadline="Không Giới Hạn"
-            description="Khám phá hàng triệu bài hát phù hợp với mọi khoảnh khắc của bạn. Còn chần chờ gì nữa?"
-            formTitle="Chào Mừng Trở Lại"
-            formSubtitle="Đăng Nhập để tiếp tục vibe của bạn"
+            headline={t('login.hero_title')}
+            highlightedHeadline={t('login.hero_highlight')}
+            description={t('login.hero_desc')}
+            formTitle={t('login.title')}
+            formSubtitle={t('login.subtitle')}
             >   
-                <form>
+                <form onSubmit={handleLoginSubmit}>
                     <div className='flex flex-col gap-4 mt-4 mb-6'>
                     <LoginInput 
                         showPassword={showPassword} 
@@ -48,26 +67,25 @@ export function Login() {
                     <div className="flex items-center justify-between text-xs text-neutral-400 mx-8">
                         <label className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
                             <input type="checkbox" className="w-3.5 h-3.5 rounded bg-neutral-800 border-neutral-700 checked:bg-green-500 checked:border-green-500 focus:ring-0 focus:ring-offset-0 accent-green-500" />
-                            Ghi nhớ đăng nhập
+                            {t('login.remember_me')}
                         </label>
                         <Link 
                             to="/forgot-password" 
                             className="hover:text-green-400 transition-colors box-decoration-slice">
-                            Quên mật khẩu?
+                            {t('login.forgot_password')}
                         </Link>
                     </div>
                     <button
                         type="submit"
-                        className="w-110 bg-green-600 hover:bg-green-700 text-white font-medium py-3.5 rounded-[5px] mt-6 mx-8 transition-colors cursor-pointer"
-                    >
-                        Đăng Nhập
+                        className="w-110 bg-green-600 hover:bg-green-700 text-white font-medium py-3.5 rounded-[5px] mt-6 mx-8 transition-colors cursor-pointer">
+                        {t('login.submit_btn')}
                     </button>
                 </form>
                 {/* Divider - Flexbox Glassmorphism - 1 kẻ trái và 1 đoạn text và 1 kẻ phải */}
                 <div className="relative mt-5 mb-4 mx-8 flex items-center gap-3">
                     <div className="h-px bg-neutral-800 flex-1"></div>
                     <span className="text-xs uppercase text-neutral-500">
-                        Hoặc tiếp tục với
+                        {t('login.divider_or')}
                     </span>
                     <div className="h-px bg-neutral-800 flex-1"></div>
                 </div>
@@ -79,11 +97,11 @@ export function Login() {
                     </button>
                 </div>
                 <div className="mt-12 mb-4 text-center text-xs text-neutral-400">
-                    Chưa có tài khoản?{' '}
+                    {t('login.no_account')}{' '}
                     <Link 
                         to="/register" 
                         className="text-white font-medium hover:underline hover:text-green-400 transition-colors">
-                        Đăng kí ngay
+                        {t('login.register_link')}
                     </Link>
                 </div>
         </AuthLayout>

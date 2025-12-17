@@ -58,8 +58,7 @@ export function ProfileContent() {
                                 <div className="group relative shrink-0">
                                     <div className="w-48 h-48 rounded-full overflow-hidden shadow-2xl border-4 border-[#1e1e1e] bg-black">
                                         <img 
-                                            src={tempProfile.avatar} 
-                                            alt="Avatar Preview" 
+                                            src={tempProfile.avatar || 'https://i.pinimg.com/736x/cb/42/a0/cb42a0d246b02689eb30931e94da76fc.jpg'} 
                                             className="w-full h-full object-cover opacity-100 group-hover:opacity-50 transition-opacity"/>
                                         {/* Overlay Icon Camera */}
                                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
