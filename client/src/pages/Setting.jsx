@@ -19,20 +19,27 @@ export function Setting() {
             <div className="col-span-2">
                 <Sidebar />
             </div>
-
-            <div className="col-span-10 pt-16 h-screen mx-8 mt-8 flex flex-col gap-8">
-                <div className="flex flex-row justify-between">
-                    <div className="flex flex-col gap-2">
-                        <h2 className="text-white text-2xl font-bold">Ngôn ngữ</h2>
-                        <p className="text-neutral-300 text-base">Chọn ngôn ngữ - Có hiệu lực khi khởi động lại Website</p>
+            
+            <div className="col-span-10 pt-16 h-screen mt-6 flex flex-col gap-8 px-8"> 
+                <div className="flex flex-col">
+                    {/* trick lỏ -mx-8 (kéo ra) và px-8 (đẩy chữ vào) */}
+                    <div className="flex flex-col gap-1 border-b border-neutral-700 pb-4 -mx-8 px-8">
+                        <h1 className="text-3xl font-bold text-white">Cài đặt</h1>
+                        <h2 className="text-base text-neutral-400">Quản lý các tùy chọn cài đặt của bạn</h2>
                     </div>
-                    <select 
-                        className="bg-[#282828] text-white p-2 rounded-md border border-neutral-600 focus:ring-2 focus:ring-green-500 focus:border-green-500 h-10 w-40 cursor-pointer"
-                        value={selectedLanguage}
-                        onChange={handleLanguageChange}>
-                        <option value="vi">Tiếng Việt</option>
-                        <option value="en">English</option>
-                    </select>
+                    <div className="flex flex-row gap-2 justify-between items-center mt-6">
+                        <div className="flex flex-col gap-2">
+                            <h2 className="text-white text-xl font-bold">Ngôn ngữ</h2>
+                            <p className="text-neutral-300 text-base">Chọn ngôn ngữ - Có hiệu lực khi khởi động lại Website</p>
+                        </div>
+                        <select 
+                            className="bg-[#282828] text-white p-2 rounded-md border border-neutral-600 focus:ring-2 focus:ring-green-500 focus:border-green-500 h-10 w-40 cursor-pointer"
+                            value={selectedLanguage}
+                            onChange={handleLanguageChange}>
+                            <option value="vi">Tiếng Việt</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <PlayerBar />

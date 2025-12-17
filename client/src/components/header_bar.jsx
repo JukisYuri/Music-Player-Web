@@ -7,7 +7,8 @@ import {
     Music,
     Settings,
     LogOut,
-    UserCircle
+    UserCircle,
+    Bell
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -60,6 +61,9 @@ export function HeaderBar({ onLogoutClick ,username = "Oleny"}) {
                             className="w-full bg-neutral-800 border border-neutral-700 rounded-full py-2 pl-10 pr-4 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/50 transition-all"
                         />
                     </div>
+                    <Link to="/notification" className="relative text-neutral-400 hover:text-green-400 transition-colors p-1">
+                        <Bell size={30} className="text-neutral-400 hover:text-green-400 transition-colors p-1"/>
+                    </Link>
                 </div>
 
                 <div className="relative">

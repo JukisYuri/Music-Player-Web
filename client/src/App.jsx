@@ -7,6 +7,7 @@ import { Profile } from './pages/Profile.jsx';
 import { OnBoarding } from './pages/Onboarding.jsx';
 import { Playlist } from './pages/Playlist.jsx';
 import { Setting } from './pages/Setting.jsx';
+import { Notification } from './pages/Notification.jsx';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
       <Route path="/onboarding" element={<OnBoarding />} />
       <Route path="/playlist" element={<Playlist/>} />
       <Route path="/setting" element={<Setting/>} />
+      <Route path="/notification" element={<Notification/>} />
     </Routes>
   )
 }
