@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from dotenv import load_dotenv
+from django.urls import reverse_lazy
+from django.utils.translation import gettext_lazy as _
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -36,6 +38,10 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "unfold",               # <-- Thay cho 'django.contrib.admin'
+    "unfold.contrib.filters",
+    "unfold.contrib.forms",
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -52,6 +58,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'corsheaders',
     'music',
+
+
 ]
 
 SITE_ID = 1
@@ -112,10 +120,11 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -182,3 +191,74 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/data/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'data')
+
+
+# --- CẤU HÌNH GIAO DIỆN UNFOLD ---
+UNFOLD = {
+    "SITE_TITLE": "Music Player Admin",
+    "SITE_HEADER": "Quản trị hệ thống",
+    "SITE_URL": "/",
+    "DASHBOARD_CALLBACK": "music.dashboard.dashboard_callback",
+    "COLORS": {
+        "primary": {
+            "50": "239 246 255",
+            "100": "219 234 254",
+            "200": "191 219 254",
+            "300": "147 197 253",
+            "400": "96 165 250",
+            "500": "59 130 246",
+            "600": "37 99 235",
+            "700": "29 78 216",
+            "800": "30 64 175",
+            "900": "30 58 138",
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+        "navigation": [
+            {
+                "title": _("Quản lý Nhạc"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Bài hát"),
+                        "icon": "music_note",
+                        # SỬA Ở ĐÂY: Thêm reverse_lazy
+                        "link": reverse_lazy("admin:music_song_changelist"),
+                    },
+                    {
+                        "title": _("Album"),
+                        "icon": "album",
+                        # SỬA Ở ĐÂY
+                        "link": reverse_lazy("admin:music_album_changelist"),
+                    },
+                    {
+                        "title": _("Ca sĩ"),
+                        "icon": "person",
+                        # SỬA Ở ĐÂY
+                        "link": reverse_lazy("admin:music_artist_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": _("Người dùng"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Playlists"),
+                        "icon": "queue_music",
+                        # SỬA Ở ĐÂY
+                        "link": reverse_lazy("admin:music_playlist_changelist"),
+                    },
+                    {
+                        "title": _("Tài khoản"),
+                        "icon": "group",
+                        # SỬA Ở ĐÂY
+                        "link": reverse_lazy("admin:auth_user_changelist"),
+                    },
+                ],
+            },
+        ],
+    },
+}

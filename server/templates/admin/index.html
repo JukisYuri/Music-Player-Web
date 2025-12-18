@@ -1,0 +1,67 @@
+{% extends 'unfold/layouts/base_simple.html' %}
+{% load i18n %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block title %}
+    {% trans 'Dashboard' %} | {{ site_title|default:_('Django site admin') }}
+{% endblock %}
+
+{% block content %}
+    {% if kpi %}
+        <div class="grid grid-cols-1 gap-4 mb-8 md:grid-cols-2 lg:grid-cols-4">
+            {% for stat in kpi %}
+                <div class="flex flex-col p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+                    <div class="flex items-center gap-3 mb-4">
+                        {% if stat.icon %}
+                            <span class="material-symbols-outlined text-{{ stat.color }}-600 text-2xl">{{ stat.icon }}</span>
+                        {% endif %}
+                        <h3 class="font-semibold text-gray-700 dark:text-gray-200">{{ stat.title }}</h3>
+                    </div>
+
+                    <div class="text-3xl font-bold text-{{ stat.color|default:'blue' }}-600 mb-2">
+                        {{ stat.metric }}
+                    </div>
+
+                    {% if stat.footer %}
+                        <p class="text-sm text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700 pt-2 mt-auto">
+                            {{ stat.footer }}
+                        </p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="flex flex-col gap-6">
+        {% for app in app_list %}
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                    <h3 class="text-sm font-bold text-gray-900 uppercase dark:text-gray-100 tracking-wider">
+                        {{ app.name }}
+                    </h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 p-2">
+                    {% for model in app.models %}
+                        <a href="{{ model.admin_url }}" class="flex items-center gap-3 p-3 transition-colors rounded-md hover:bg-blue-50 dark:hover:bg-gray-700 group">
+                            <div class="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-lg dark:bg-gray-700 text-blue-600 group-hover:bg-white group-hover:shadow-sm transition-all">
+                                <span class="material-symbols-outlined">
+                                    {% if model.object_name == 'Song' %}music_note
+                                    {% elif model.object_name == 'Album' %}album
+                                    {% elif model.object_name == 'Artist' %}person
+                                    {% elif model.object_name == 'Playlist' %}queue_music
+                                    {% elif model.object_name == 'User' %}group
+                                    {% else %}circle{% endif %}
+                                </span>
+                            </div>
+                            <span class="font-medium text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-400">
+                                {{ model.name }}
+                            </span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
