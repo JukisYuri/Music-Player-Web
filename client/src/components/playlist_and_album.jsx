@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 export function PlaylistTracks({ albums, onPlayAlbum }) {
     const navigate = useNavigate();
 
-    // Hàm chuyển trang khi click vào Album
     const handleAlbumClick = (artistName) => {
         navigate(`/album/${encodeURIComponent(artistName)}`);
     };
@@ -14,7 +13,6 @@ export function PlaylistTracks({ albums, onPlayAlbum }) {
             {albums.map((album) => (
                 <div
                     key={album.id}
-
                     onClick={() => handleAlbumClick(album.artist)}
                     className="group relative bg-neutral-800/40 hover:bg-neutral-800 p-4 rounded-xl transition-all duration-300 cursor-pointer"
                 >

@@ -4,10 +4,10 @@ import { HeaderBar } from '../components/header_bar.jsx';
 import { Sidebar } from '../components/sidebar.jsx';
 import { LogoutConfirmModal } from '../components/logout_confirm_modal.jsx';
 import { PlaylistTracks } from '../components/playlist_and_album.jsx';
-import { Play, Clock, Music, Disc } from 'lucide-react';
+import { Play, Clock, Music, Disc, Heart, PlusCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-// Hàm tạo màu random cho Album không có ảnh
+// --- Helper Components & Functions ---
 const getRandomColor = () => {
     const colors = ["from-blue-600 to-purple-600", "from-green-600 to-teal-600", "from-rose-600 to-orange-600", "from-yellow-500 to-red-600", "from-gray-600 to-slate-800"];
     return colors[Math.floor(Math.random() * colors.length)];
@@ -26,18 +26,17 @@ export function Index() {
     const { t } = useTranslation();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const [playlist, setPlaylist] = useState([]);      // Toàn bộ nhạc
-    const [albums, setAlbums] = useState([]);          // Danh sách Album
-    const [currentQueue, setCurrentQueue] = useState([]); // Danh sách đang chờ phát
+    // Data States
+    const [playlist, setPlaylist] = useState([]);
+    const [albums, setAlbums] = useState([]);
+    const [likedSongs, setLikedSongs] = useState(new Set()); // Quản lý danh sách yêu thích
 
-    const [currentSong, setCurrentSong] = useState({
-        title: "Sẵn sàng",
-        artist: "Chọn bài hát...",
-        audioUrl: "",
-        cover: ""
-    });
+    // Playback States
+    const [currentQueue, setCurrentQueue] = useState([]);
+    const [currentSong, setCurrentSong] = useState({ title: "Sẵn sàng", artist: "Chọn bài hát...", audioUrl: "", cover: "" });
+    const [isPlaying, setIsPlaying] = useState(false); // Đồng bộ trạng thái Play/Pause
 
-    // 1. Fetch Data
+    // 1. Fetch Local Music
     useEffect(() => {
         const fetchLocalSongs = async () => {
             try {
@@ -53,7 +52,7 @@ export function Index() {
         fetchLocalSongs();
     }, []);
 
-    // 2. Gom nhóm Album theo Artist
+    // 2. Group Albums by Artist
     useEffect(() => {
         if (playlist.length === 0) return;
         const grouped = {};
@@ -74,7 +73,7 @@ export function Index() {
         setAlbums(Object.values(grouped));
     }, [playlist]);
 
-    // 3. Logic Play
+    // 3. Play Logic
     const handlePlaySong = (song) => {
         setCurrentSong({
             title: song.title,
@@ -89,7 +88,6 @@ export function Index() {
         handlePlaySong(song);
     };
 
-    // Khi bấm Play Album -> Set Queue chỉ gồm bài của Album đó
     const handlePlayAlbum = (album) => {
         if (album.songs?.length > 0) {
             setCurrentQueue(album.songs);
@@ -97,7 +95,7 @@ export function Index() {
         }
     };
 
-    // 4. Logic Next / Prev
+    // 4. Next/Prev Logic
     const handleNext = () => {
         if (currentQueue.length === 0) return;
         const idx = currentQueue.findIndex(s => s.title === currentSong.title);
@@ -110,6 +108,15 @@ export function Index() {
         const idx = currentQueue.findIndex(s => s.title === currentSong.title);
         const prevIdx = (idx - 1 + currentQueue.length) % currentQueue.length;
         handlePlaySong(currentQueue[prevIdx]);
+    };
+
+    // 5. User Actions (Like/Add)
+    const toggleLike = (songId) => {
+        setLikedSongs(prev => {
+            const newSet = new Set(prev);
+            newSet.has(songId) ? newSet.delete(songId) : newSet.add(songId);
+            return newSet;
+        });
     };
 
     return (
@@ -142,28 +149,50 @@ export function Index() {
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold flex items-center gap-2">{t('home_page.popular_music')} (Top 10)</h2>
                         </div>
-                        <div className="grid grid-cols-[50px_4fr_3fr_1fr] gap-4 px-4 py-2 border-b border-neutral-800 text-sm text-neutral-400 font-medium uppercase tracking-wider">
+                        {/* Grid 5 columns: # | Title | Artist | Time | Actions */}
+                        <div className="grid grid-cols-[50px_4fr_3fr_1fr_100px] gap-4 px-4 py-2 border-b border-neutral-800 text-sm text-neutral-400 font-medium uppercase tracking-wider">
                             <div className="text-center">#</div>
                             <div>{t('home_page.title_music')}</div>
                             <div>{t('home_page.title_artist')}</div>
                             <div className="text-right flex justify-end items-center"><Clock size={16}/></div>
+                            <div className="text-center">Thao tác</div>
                         </div>
+
                         <div className="flex flex-col mt-2">
                             {playlist.slice(0, 10).map((song, index) => {
                                 const isActive = currentSong.title === song.title;
+                                const isLiked = likedSongs.has(song.id);
                                 return (
-                                    <div key={song.id} onClick={() => handlePlaySingleSong(song)} className={`group grid grid-cols-[50px_4fr_3fr_1fr] gap-4 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 items-center ${isActive ? 'bg-white/10 border-l-4 border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.1)]' : 'hover:bg-neutral-800/50 border-l-4 border-transparent'}`}>
+                                    <div key={song.id} onClick={() => handlePlaySingleSong(song)} className={`group grid grid-cols-[50px_4fr_3fr_1fr_100px] gap-4 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 items-center ${isActive ? 'bg-white/10 border-l-4 border-green-500' : 'hover:bg-neutral-800/50 border-l-4 border-transparent'}`}>
+
+                                        {/* Cột 1: STT / Icon */}
                                         <div className="text-center text-neutral-400 font-medium relative flex justify-center items-center h-full">
-                                            {isActive ? <PlayingEqualizer /> : <><span className="group-hover:hidden">{index + 1}</span><Play size={16} className="hidden group-hover:block text-white" /></>}
+                                            {isActive && isPlaying ? <PlayingEqualizer /> : isActive && !isPlaying ? <Play size={16} className="text-green-500" fill="currentColor"/> : <><span className="group-hover:hidden">{index + 1}</span><Play size={16} className="hidden group-hover:block text-white" /></>}
                                         </div>
+
+                                        {/* Cột 2: Title & Cover */}
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-neutral-700 rounded overflow-hidden shrink-0 relative">
                                                 {song.cover && song.cover.startsWith("data:") ? <img src={song.cover} className="w-full h-full object-cover"/> : <div className="absolute inset-0 flex items-center justify-center"><Music size={16} className="text-neutral-500"/></div>}
                                             </div>
                                             <span className={`font-semibold text-base line-clamp-1 transition-colors ${isActive ? 'text-green-400' : 'text-white'}`}>{song.title}</span>
                                         </div>
+
+                                        {/* Cột 3: Artist */}
                                         <div className={`text-sm line-clamp-1 ${isActive ? 'text-white' : 'text-neutral-400'}`}>{song.artist}</div>
+
+                                        {/* Cột 4: Time */}
                                         <div className="text-right text-neutral-400 text-sm">{song.duration}</div>
+
+                                        {/* Cột 5: Actions */}
+                                        <div className="flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={(e) => { e.stopPropagation(); toggleLike(song.id); }} className={`hover:scale-125 transition-transform ${isLiked ? 'text-green-500' : 'text-neutral-400 hover:text-white'}`}>
+                                                <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
+                                            </button>
+                                            <button onClick={(e) => { e.stopPropagation(); alert("Đã thêm vào playlist!"); }} className="text-neutral-400 hover:text-white hover:scale-125 transition-transform">
+                                                <PlusCircle size={18} />
+                                            </button>
+                                        </div>
                                     </div>
                                 );
                             })}
@@ -187,6 +216,9 @@ export function Index() {
                 cover={currentSong.cover}
                 onNext={handleNext}
                 onPrev={handlePrev}
+                onPlayingChange={(status) => setIsPlaying(status)}
+                playlist={currentQueue}
+                onPlaySong={handlePlaySong}
             />
 
             <LogoutConfirmModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={() => setIsModalOpen(false)} />
