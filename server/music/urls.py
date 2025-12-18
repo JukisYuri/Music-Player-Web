@@ -1,6 +1,8 @@
+# server/music/urls.py
 from django.urls import path
-from .views import YouTubeStreamView
+from .views import LocalMusicListView
 
 urlpatterns = [
-    path('stream/', YouTubeStreamView.as_view(), name='youtube-stream'),
+    # Đường dẫn API mới
+    path('local-songs/', LocalMusicListView.as_view(), name='local-songs'),
 ]
