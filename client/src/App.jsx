@@ -8,6 +8,8 @@ import { OnBoarding } from './pages/Onboarding.jsx';
 import { Playlist } from './pages/Playlist.jsx';
 import { Setting } from './pages/Setting.jsx';
 import { Notification } from './pages/Notification.jsx';
+import { AlbumDetail} from "./pages/AlbumDetail.jsx";
+import { Search} from "./pages/search.jsx";
 
 function App() {
   return (
@@ -19,11 +21,13 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/index" element={<Index />} />
+      <Route path="/album/:artistName" element={<AlbumDetail />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/onboarding" element={<OnBoarding />} />
       <Route path="/playlist" element={<Playlist/>} />
       <Route path="/setting" element={<Setting/>} />
       <Route path="/notification" element={<Notification/>} />
+      <Route path="/search" element={<Search />} />
     </Routes>
   )
 }
