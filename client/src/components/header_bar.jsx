@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
     Home,
     Search,
@@ -8,20 +8,30 @@ import {
     Settings,
     LogOut,
     UserCircle,
-    Bell
+    Bell,
+    Mic,
+    Loader2,
+    Square
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-/**
- * Chứa Logo, nút Home, Search và User Profile với Dropdown và Modal xác nhận Đăng xuất.
- * @param {function} onLogoutClick - Hàm để thông báo cho component cha (Index) mở Modal.
- * @param username - tên người dùng
- */
-export function HeaderBar({ onLogoutClick ,username = "Oleny"}) {
+export function HeaderBar({ onLogoutClick, username = "Oleny" }) {
     const userName = username;
     const { t } = useTranslation();
+    const navigate = useNavigate();
+
+    // --- State ---
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [searchText, setSearchText] = useState('');
+
+    // --- Refs ---
+    const mediaRecorderRef = useRef(null);
+    const audioChunksRef = useRef([]);
+
+    const searchInputRef = useRef(null);
 
     const dropdownItems = [
         { name: t('header_bar.account'), href: '/profile', icon: UserCircle },
@@ -39,9 +49,83 @@ export function HeaderBar({ onLogoutClick ,username = "Oleny"}) {
         setIsMenuOpen(false);
     };
 
+    // --- LOGIC GHI ÂM ---
+    const handleToggleRecording = async () => {
+        if (isRecording) {
+            if (mediaRecorderRef.current) {
+                mediaRecorderRef.current.stop();
+            }
+            setIsRecording(false);
+            setIsLoading(true);
+        } else {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorderRef.current = new MediaRecorder(stream);
+                audioChunksRef.current = [];
+
+                mediaRecorderRef.current.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunksRef.current.push(event.data);
+                    }
+                };
+
+                mediaRecorderRef.current.onstop = sendAudioToBackend;
+                mediaRecorderRef.current.start();
+                setIsRecording(true);
+            } catch (err) {
+                console.error("Microphone Access Error:", err);
+                alert("Không thể truy cập Microphone. Vui lòng cấp quyền.");
+            }
+        }
+    };
+
+    const sendAudioToBackend = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const formData = new FormData();
+        formData.append('audio_file', audioBlob, 'voice_command.webm');
+
+        try {
+            const response = await fetch('http://localhost:8000/api/voice/process/', {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await response.json();
+            setIsLoading(false);
+
+            if (data.status === 'success') {
+                processVoiceCommand(data);
+            } else {
+                console.error("Voice Error:", data.message);
+                alert("Không nhận diện được giọng nói.");
+            }
+        } catch (error) {
+            console.error("Server Error:", error);
+            setIsLoading(false);
+            alert("Lỗi kết nối tới Server.");
+        }
+    };
+
+    // --- SỬA ĐỔI QUAN TRỌNG Ở ĐÂY ---
+    const processVoiceCommand = (data) => {
+        const finalContent = data.keyword || data.text;
+
+        setSearchText(finalContent);
+
+        if (searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
+
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            navigate(`/search?q=${encodeURIComponent(searchText)}`);
+        }
+    };
+
     return (
         <header className="fixed top-0 left-0 w-full h-16 bg-neutral-900/95 backdrop-blur-md border-b border-neutral-800 z-40 shadow-lg">
-            <div className=" h-full mx-auto px-6 flex items-center justify-between">
+            <div className="h-full mx-auto px-6 flex items-center justify-between">
 
                 <div className="flex items-center">
                     <Link to="/index" className="flex items-center gap-2 text-white hover:text-green-400 transition-colors p-1">
@@ -54,14 +138,36 @@ export function HeaderBar({ onLogoutClick ,username = "Oleny"}) {
                     <Link to="/index" className="text-neutral-400 hover:text-green-400 transition-colors p-1">
                         <Home size={22} />
                     </Link>
-                    <div className="relative flex-1 max-w-md">
-                        <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500" />
+
+                    <div className="relative flex-1 max-w-md group">
+                        <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 group-focus-within:text-green-500 transition-colors" />
+
                         <input
+                            ref={searchInputRef} // Gắn ref vào đây
                             type="text"
-                            placeholder={t('header_bar.search_placeholder')}
-                            className="w-full bg-neutral-800 border border-neutral-700 rounded-full py-2 pl-10 pr-4 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/50 transition-all"
+                            placeholder={isRecording ? "Đang nghe..." : t('header_bar.search_placeholder')}
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            className={`w-full bg-neutral-800 border ${isRecording ? 'border-green-500 ring-1 ring-green-500' : 'border-neutral-700'} rounded-full py-2 pl-10 pr-12 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/50 transition-all`}
                         />
+
+                        <button
+                            onClick={handleToggleRecording}
+                            disabled={isLoading}
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1.5 rounded-full hover:bg-neutral-700 transition-colors text-neutral-400 hover:text-green-400"
+                            title="Nhập bằng giọng nói"
+                        >
+                            {isLoading ? (
+                                <Loader2 size={18} className="animate-spin text-green-500" />
+                            ) : isRecording ? (
+                                <Square size={18} className="text-red-500 fill-current animate-pulse" />
+                            ) : (
+                                <Mic size={18} />
+                            )}
+                        </button>
                     </div>
+
                     <Link to="/notification" className="relative text-neutral-400 hover:text-green-400 transition-colors p-1">
                         <Bell size={30} className="text-neutral-400 hover:text-green-400 transition-colors p-1"/>
                     </Link>
@@ -71,7 +177,6 @@ export function HeaderBar({ onLogoutClick ,username = "Oleny"}) {
                     <button
                         onClick={handleMenuToggle}
                         className="flex items-center gap-2 p-1 rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors focus:outline-none"
-                        aria-expanded={isMenuOpen}
                     >
                         <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white">
                             <User size={18} />

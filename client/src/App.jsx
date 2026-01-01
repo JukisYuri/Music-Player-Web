@@ -9,6 +9,7 @@ import { Playlist } from './pages/Playlist.jsx';
 import { Setting } from './pages/Setting.jsx';
 import { Notification } from './pages/Notification.jsx';
 import { AlbumDetail} from "./pages/AlbumDetail.jsx";
+import { Search} from "./pages/search.jsx";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
       <Route path="/playlist" element={<Playlist/>} />
       <Route path="/setting" element={<Setting/>} />
       <Route path="/notification" element={<Notification/>} />
+      <Route path="/search" element={<Search />} />
     </Routes>
   )
 }

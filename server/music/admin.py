@@ -1,8 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
-# Import từ Unfold thay vì django.contrib.admin
 from unfold.admin import ModelAdmin, TabularInline
-from unfold.decorators import display  # Decorator để hiển thị đẹp hơn
+from unfold.decorators import display
 from .models import Artist, Album, Song, Playlist, PlaylistSong
 
 
