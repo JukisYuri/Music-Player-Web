@@ -1,33 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { PenLine, X, Save, Camera } from 'lucide-react';
 import { ProfileListSong } from './profile_listsong'; // Đảm bảo file này tồn tại
 import { useTranslation } from 'react-i18next';
 import axios from 'axios'; // 1. Thêm import axios
+import { useAuth } from './auth_context';
 
 export function ProfileContent() {
     const { t } = useTranslation();
-    const [user, setUser] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-
-    // Hàm lấy dữ liệu User
-    useEffect(() => {
-        const fetchUserData = async () => {
-            const token = localStorage.getItem('token');
-            if (!token) return; 
-            try {
-                const res = await axios.get('http://localhost:8000/api/user/me/', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setUser(res.data);
-            } catch (error) {
-                console.error("Lỗi lấy thông tin:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchUserData();
-    }, []);
-
+    const { user, loading, fetchUser } = useAuth();
+    const fileInputRef = useRef(null);
     // State cho Modal edit
     const [isEditing, setIsEditing] = useState(false);
     const [tempProfile, setTempProfile] = useState({});
@@ -44,12 +25,49 @@ export function ProfileContent() {
         setIsEditing(true);
     };
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // Tạo URL ảo để xem trước ảnh ngay lập tức
+            const previewUrl = URL.createObjectURL(file);
+            
+            setTempProfile({
+                ...tempProfile,
+                avatar_preview: previewUrl, // Dùng để hiển thị
+                avatar_file: file           // Dùng để gửi lên Server
+            });
+        }
+    };
+    // Hàm trigger file input
+    const handleTriggerFileSelect = () => {
+        fileInputRef.current.click();
+    };
+
     // Hàm lưu
-    const handleSave = () => {
-        // Cập nhật tạm thời vào giao diện
-        setUser({ ...user, ...tempProfile });
-        setIsEditing(false);
-        // TODO: Cần viết hàm gọi API PATCH để lưu thật sự vào database ở đây
+    const handleSave = async () => {
+        try {
+            console.log("File ảnh đang gửi:", tempProfile.avatar_file);
+            const token = localStorage.getItem('token');
+            const formData = new FormData();
+            formData.append('display_name', tempProfile.display_name);
+            formData.append('description', tempProfile.description);
+            if (tempProfile.avatar_file) {
+                formData.append('profile_image_url', tempProfile.avatar_file); 
+            }
+            // 1. Gọi API cập nhật lên Server
+            await axios.patch('http://localhost:8000/api/user/update-profile/', formData, {
+                headers: { 
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': undefined // Để trình duyệt tự set boundary cho multipart/form-data
+                }
+            });
+            await fetchUser(); // 2. Cập nhật lại thông tin user mới nhất từ server
+            setIsEditing(false);
+            alert("Cập nhật thành công!");
+        } catch (error) {
+            console.error("Lỗi cập nhật:", error);
+            alert("Cập nhật thất bại!");
+        }
     };
 
     // Helper: Xử lý link ảnh (ghép localhost nếu cần)
@@ -60,12 +78,12 @@ export function ProfileContent() {
     };
 
     // 2. Màn hình chờ
-    if (isLoading) {
-        return <div className="text-white p-10">Đang tải hồ sơ...</div>;
+    if (loading) {
+        return <div className="text-white p-10">{t('profile.is_loading')}</div>;
     }
 
     if (!user) {
-        return <div className="text-white p-10">Vui lòng đăng nhập để xem hồ sơ.</div>;
+        return <div className="text-white p-10">{t('profile.no_user')}</div>;
     }
 
     return (
@@ -94,22 +112,36 @@ export function ProfileContent() {
                             <div className="flex flex-row gap-10 items-start">
                                 {/* 1. EDIT AVATAR */}
                                 <div className="group relative shrink-0">
-                                    <div className="w-48 h-48 rounded-full overflow-hidden shadow-2xl border-4 border-[#1e1e1e] bg-black">
+                                    {/* Thêm sự kiện onClick vào đây và cursor-pointer */}
+                                    <div 
+                                        onClick={handleTriggerFileSelect}
+                                        className="w-48 h-48 rounded-full overflow-hidden shadow-2xl border-4 border-[#1e1e1e] bg-black cursor-pointer relative"
+                                    >
+                                        {/* Logic hiển thị: Ưu tiên ảnh vừa chọn (preview) -> Nếu không thì lấy ảnh cũ */}
                                         <img 
-                                            src={getAvatarUrl(user.profile_image_url)} 
+                                            src={tempProfile.avatar_preview || getAvatarUrl(user.profile_image_url)} 
                                             className="w-full h-full object-cover opacity-100 group-hover:opacity-50 transition-opacity"
+                                            alt="Avatar Preview"
                                         />
+                                        
+                                        {/* Icon Camera hiện lên khi hover */}
                                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                                             <Camera size={40} className="text-white" />
                                         </div>
                                     </div>
+
+                                    {/* Input file bị ẩn đi (hidden), được kích hoạt bởi Ref */}
                                     <input 
-                                        type="text"
-                                        placeholder="Dán link ảnh vào đây..."
-                                        className="absolute -bottom-10 left-0 w-48 text-xs bg-black/50 text-white border border-white/20 rounded px-2 py-1 focus:outline-none focus:border-white transition-all"
-                                        value={tempProfile.avatar}
-                                        onChange={(e) => setTempProfile({...tempProfile, avatar: e.target.value})}/>
-                                        {/* Lưu ý 3 chấm trong tempProfile, giữ nguyên những cái cũ */}
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleImageChange}
+                                        className="hidden" 
+                                        accept="image/*"
+                                    />
+                                    
+                                    <p className="text-xs text-neutral-500 text-center mt-3">
+                                        {t('profile.click_to_change')}
+                                    </p>
                                 </div>
 
                                 {/* 2. EDIT INFO */}
@@ -132,7 +164,7 @@ export function ProfileContent() {
                                         value={tempProfile.description}
                                         onChange={(e) => setTempProfile({...tempProfile, description: e.target.value})}
                                         className="text-white text-lg font-normal mt-6 w-full bg-transparent border-b border-white/20 focus:border-white outline-none resize-none h-24 placeholder-white/30 leading-relaxed transition-all"
-                                        placeholder="Viết gì đó về bạn..."
+                                        placeholder={t('profile.bio')}
                                     />
                                 </div>
                             </div>
@@ -176,14 +208,14 @@ export function ProfileContent() {
                             <div className="flex flex-row items-center gap-2">
                                 {/* Dùng user.display_name thay vì profile.name */}
                                 <div className="text-white text-4xl font-semibold mt-4">
-                                    {user.display_name || user.username}
+                                    {user.display_name}
                                 </div>
                                 <div className="text-white text-2xl font-light mt-6 opacity-80">
                                     @{user.username}
                                 </div>
                             </div>
                             <div className="text-white text-lg font-normal mt-4 max-w-2xl italic opacity-90">
-                                "{user.description || 'Chưa có tiểu sử'}"
+                                "{user.description || t('profile.no_bio')}"
                             </div>
                             <div className="mt-6 flex flex-row items-center gap-4">
                                 <button 

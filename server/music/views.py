@@ -143,6 +143,13 @@ class UpdateProfileView(generics.UpdateAPIView):
         # Đảm bảo user chỉ sửa được chính mình
         return self.request.user
     
+    def update(self, request, *args, **kwargs):
+        print("--- DEBUG UPDATE PROFILE ---")
+        print("Dữ liệu text nhận được:", request.data)
+        print("File ảnh nhận được:", request.FILES)
+    
+        return super().update(request, *args, **kwargs)
+    
 class UserProfileView(generics.RetrieveAPIView):
     serializer_class = UserSerializer 
     # Bắt buộc phải có Token mới xem được
