@@ -6,7 +6,19 @@ from rest_framework.response import Response
 from django.conf import settings
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3, APIC
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import get_user_model
+from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.parsers import MultiPartParser, FormParser
+from .serializers import UserSerializer, UserUpdateSerializer
+import requests
+import uuid
 
+User = get_user_model()
 
 class LocalMusicListView(APIView):
     def get(self, request):
@@ -72,3 +84,68 @@ class LocalMusicListView(APIView):
                     continue
 
         return Response(songs)
+
+class GoogleLoginView(APIView):
+    def post(self, request):
+        google_access_token = request.data.get('access_token')
+        if not google_access_token:
+            return Response({'error': 'Access token is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 1. Hỏi Google thông tin user
+        google_user_info_url = 'https://www.googleapis.com/oauth2/v3/userinfo'
+        response = requests.get(google_user_info_url, params={'access_token': google_access_token})
+
+        if not response.ok:
+            return Response({'error': 'Invalid google token'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_info = response.json()
+        email = user_info.get('email')
+
+        # 2. Logic kiểm tra người mới
+        try:
+            # Nếu tìm thấy user -> Người cũ
+            user = User.objects.get(email=email)
+            is_new_user = False
+        except User.DoesNotExist:
+            # Nếu không thấy -> Người mới -> Tạo username tạm (VD: user_a1b2c3...)
+            # Tại sao? Vì username là unique, dùng tên email dễ bị trùng hoặc lộ thông tin.
+            temp_username = f"user_{uuid.uuid4().hex[:8]}"
+            user = User.objects.create_user(
+                username=temp_username,
+                email=email,
+                display_name=user_info.get('name', ''),
+            )
+            user.set_unusable_password() # Khóa password
+            user.save()
+            is_new_user = True
+
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'is_new_user': is_new_user, # React sẽ dựa vào biến này để chuyển hướng
+            'user': {
+                'email': user.email,
+                'username': user.username
+            }
+        })
+
+# 3. (Onboarding Submit)
+class UpdateProfileView(generics.UpdateAPIView):
+    queryset = User.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserUpdateSerializer
+    # Parser giúp Django hiểu được dữ liệu dạng 'multipart/form-data' (có file đính kèm)
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get_object(self):
+        # Đảm bảo user chỉ sửa được chính mình
+        return self.request.user
+    
+class UserProfileView(generics.RetrieveAPIView):
+    serializer_class = UserSerializer 
+    # Bắt buộc phải có Token mới xem được
+    permission_classes = [IsAuthenticated]
+    def get_object(self):
+        return self.request.user

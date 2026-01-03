@@ -2,6 +2,8 @@ import { useState } from "react";
 import { CircleUser, Camera, AtSign, Sparkles, Check, Music } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../components/auth_context.jsx";
+import axios from 'axios';
 
 export function OnBoarding() {
     const { t } = useTranslation();
@@ -9,6 +11,8 @@ export function OnBoarding() {
     const [displayName, setDisplayName] = useState("");
     const [username, setUsername] = useState("");
     const [avatarPreview, setAvatarPreview] = useState(null);
+    const [avatarFile, setAvatarFile] = useState(null);
+    const { fetchUser } = useAuth();
 
     const handleNameChange = (e) => {
         const val = e.target.value;
@@ -19,13 +23,39 @@ export function OnBoarding() {
         const file = e.target.files[0];
         if (file) {
             setAvatarPreview(URL.createObjectURL(file));
+            setAvatarFile(file)
         }
     };
 
-    const handleOnBoardingSubmit = (e) => {
+    const handleOnBoardingSubmit = async (e) => {
         e.preventDefault();
-        console.log("Đã hoàn tất onboarding với:", { displayName, username, avatarPreview });
-        navigate('/index');
+
+        // 1. Dùng FormData
+        const formData = new FormData();
+        formData.append('display_name', displayName);
+        formData.append('username', username);
+        if (avatarFile) {
+            formData.append('profile_image_url', avatarFile);
+        }
+        try {
+            const token = localStorage.getItem('token');
+            // 2. Gửi request PATCH
+            await axios.patch('http://localhost:8000/api/user/update-profile/', formData, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data',
+                }
+            });
+            await fetchUser(); // lưu kho
+            // 3. Thành công
+            navigate('/index');
+        } catch (error) {
+            console.error("Lỗi:", error);
+            // Xử lý hiển thị lỗi nếu trùng username
+            if (error.response?.data?.username) {
+                alert(error.response.data.username[0]);
+            }
+        }
     }
 
     return (

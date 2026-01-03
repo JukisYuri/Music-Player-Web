@@ -257,10 +257,12 @@ UNFOLD = {
                         "title": _("Tài khoản"),
                         "icon": "group",
                         # SỬA Ở ĐÂY
-                        "link": reverse_lazy("admin:auth_user_changelist"),
+                        "link": reverse_lazy("admin:music_user_changelist"),
                     },
                 ],
             },
         ],
     },
 }
+
+AUTH_USER_MODEL = 'music.User'

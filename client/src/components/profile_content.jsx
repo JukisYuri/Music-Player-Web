@@ -1,33 +1,72 @@
 import { useState, useEffect } from 'react';
 import { PenLine, X, Save, Camera } from 'lucide-react';
-import { ProfileListSong } from './profile_listsong';
+import { ProfileListSong } from './profile_listsong'; // Đảm bảo file này tồn tại
 import { useTranslation } from 'react-i18next';
+import axios from 'axios'; // 1. Thêm import axios
 
 export function ProfileContent() {
     const { t } = useTranslation();
-    // Quản lý dữ liệu Profile (State)
-    const [profile, setProfile] = useState({
-        name: "Jukis Yuri",
-        id: "@jukisyuri", // ID này cố định, không chỉnh sửa
-        bio: "A lone soul weaving fate among silent constellations",
-        avatar: "https://i.pinimg.com/1200x/dc/31/6f/dc316f9a3d295e829f9f863af6863f24.jpg"
-    });
+    const [user, setUser] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // State cho Modal và dữ liệu tạm thời
-    const [isEditing, setIsEditing] = useState(false); // isEditing = false là đang đóng
-    const [tempProfile, setTempProfile] = useState(profile);
+    // Hàm lấy dữ liệu User
+    useEffect(() => {
+        const fetchUserData = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) return; 
+            try {
+                const res = await axios.get('http://localhost:8000/api/user/me/', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setUser(res.data);
+            } catch (error) {
+                console.error("Lỗi lấy thông tin:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchUserData();
+    }, []);
 
-    // Hàm mở modal: Copy dữ liệu hiện tại vào dữ liệu tạm
+    // State cho Modal edit
+    const [isEditing, setIsEditing] = useState(false);
+    const [tempProfile, setTempProfile] = useState({});
+
+    // Khi mở modal, copy dữ liệu user hiện tại vào temp
     const handleOpenEdit = () => {
-        setTempProfile(profile);
+        if (user) {
+            setTempProfile({
+                // Map dữ liệu từ User state sang form
+                display_name: user.display_name || '',
+                description: user.description || '',
+            });
+        }
         setIsEditing(true);
     };
 
-    // Cập nhật dữ liệu chính thức và đóng modal
+    // Hàm lưu
     const handleSave = () => {
-        setProfile(tempProfile);
+        // Cập nhật tạm thời vào giao diện
+        setUser({ ...user, ...tempProfile });
         setIsEditing(false);
+        // TODO: Cần viết hàm gọi API PATCH để lưu thật sự vào database ở đây
     };
+
+    // Helper: Xử lý link ảnh (ghép localhost nếu cần)
+    const getAvatarUrl = (path) => {
+        if (!path) return 'https://placehold.co/400?text=No+Avatar';
+        if (path.startsWith('http')) return path;
+        return `http://localhost:8000${path}`;
+    };
+
+    // 2. Màn hình chờ
+    if (isLoading) {
+        return <div className="text-white p-10">Đang tải hồ sơ...</div>;
+    }
+
+    if (!user) {
+        return <div className="text-white p-10">Vui lòng đăng nhập để xem hồ sơ.</div>;
+    }
 
     return (
         <div className="relative h-full bg-[#121212] text-white overflow-y-auto custom-scrollbar overflow-x-hidden group">
@@ -44,7 +83,7 @@ export function ProfileContent() {
                             
                             <button 
                                 onClick={() => setIsEditing(false)}
-                                className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors">
+                                className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors cursor-pointer">
                                 <X size={24} />
                             </button>
 
@@ -52,15 +91,14 @@ export function ProfileContent() {
                                 <PenLine size={20} /> {t('profile.edit_profile2')}
                             </div>
 
-                           
                             <div className="flex flex-row gap-10 items-start">
                                 {/* 1. EDIT AVATAR */}
                                 <div className="group relative shrink-0">
                                     <div className="w-48 h-48 rounded-full overflow-hidden shadow-2xl border-4 border-[#1e1e1e] bg-black">
                                         <img 
-                                            src={tempProfile.avatar || 'https://i.pinimg.com/736x/cb/42/a0/cb42a0d246b02689eb30931e94da76fc.jpg'} 
-                                            className="w-full h-full object-cover opacity-100 group-hover:opacity-50 transition-opacity"/>
-                                        {/* Overlay Icon Camera */}
+                                            src={getAvatarUrl(user.profile_image_url)} 
+                                            className="w-full h-full object-cover opacity-100 group-hover:opacity-50 transition-opacity"
+                                        />
                                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                                             <Camera size={40} className="text-white" />
                                         </div>
@@ -79,20 +117,22 @@ export function ProfileContent() {
                                     <div className="flex flex-row items-baseline gap-3">
                                         <input 
                                             type="text"
-                                            maxLength={16}
-                                            value={tempProfile.name}
-                                            onChange={(e) => setTempProfile({...tempProfile, name: e.target.value})}
+                                            maxLength={30}
+                                            value={tempProfile.display_name}
+                                            onChange={(e) => setTempProfile({...tempProfile, display_name: e.target.value})}
                                             className="text-white text-4xl font-semibold bg-transparent border-b border-white/20 focus:border-white outline-none w-auto min-w-[200px] placeholder-white/30 transition-all"
+                                            placeholder="Tên hiển thị"
                                         />
                                         <div className="text-white text-2xl font-light opacity-50 select-none">
-                                            {profile.id}
+                                            @{user.username}
                                         </div>
                                     </div>
                                     <textarea 
                                         maxLength={150}
-                                        value={tempProfile.bio}
-                                        onChange={(e) => setTempProfile({...tempProfile, bio: e.target.value})}
+                                        value={tempProfile.description}
+                                        onChange={(e) => setTempProfile({...tempProfile, description: e.target.value})}
                                         className="text-white text-lg font-normal mt-6 w-full bg-transparent border-b border-white/20 focus:border-white outline-none resize-none h-24 placeholder-white/30 leading-relaxed transition-all"
+                                        placeholder="Viết gì đó về bạn..."
                                     />
                                 </div>
                             </div>
@@ -115,27 +155,18 @@ export function ProfileContent() {
                 </div>
             )}
 
-
             {/* --- MAIN CONTENT (VIEW MODE) --- */}
             <div className="relative z-10">
                 <div className="bg-linear-to-b from-[#7F1D1D]/90 via-[#451010]/80 to-[#121212] p-8 pb-6 backdrop-blur-sm">
-                    <div className="text-white text-3xl font-bold mb-4">{t('profile.title')}</div>
+                    <div className="text-white text-3xl font-bold mb-4">{t('profile.title', 'Hồ sơ')}</div>
                     <div className="flex flex-row gap-10">
                         <div className="relative group shrink-0 w-48 h-48 flex items-center justify-center">
-                            {/* animate-spin */}
-                            <div 
-                                className="absolute -inset-3 bg-[conic-gradient(transparent,transparent,#ef4444)] rounded-full animate-spin blur-md opacity-70"
-                                style={{ animationDuration: '3s' }}
-                            ></div>
-                            {/* LỚP NEON SHARP */}
-                            <div 
-                                className="absolute -inset-1 bg-[conic-gradient(transparent,transparent,#ff0000)] rounded-full animate-spin"
-                                style={{ animationDuration: '3s' }} 
-                            ></div>
-                            {/* ẢNH GỐC */}
+                            <div className="absolute -inset-3 bg-[conic-gradient(transparent,transparent,#ef4444)] rounded-full animate-spin blur-md opacity-70" style={{ animationDuration: '3s' }}></div>
+                            <div className="absolute -inset-1 bg-[conic-gradient(transparent,transparent,#ff0000)] rounded-full animate-spin" style={{ animationDuration: '3s' }}></div>
+                            
                             <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-[#121212] z-10">
                                 <img 
-                                    src={profile.avatar} 
+                                    src={getAvatarUrl(user.profile_image_url)} 
                                     alt="Avatar" 
                                     className="w-full h-full object-cover"
                                 />
@@ -143,17 +174,21 @@ export function ProfileContent() {
                         </div>
                         <div className="flex flex-col">
                             <div className="flex flex-row items-center gap-2">
-                                <div className="text-white text-4xl font-semibold mt-4">{profile.name}</div>
-                                <div className="text-white text-2xl font-light mt-6 opacity-80">{profile.id}</div>
+                                {/* Dùng user.display_name thay vì profile.name */}
+                                <div className="text-white text-4xl font-semibold mt-4">
+                                    {user.display_name || user.username}
+                                </div>
+                                <div className="text-white text-2xl font-light mt-6 opacity-80">
+                                    @{user.username}
+                                </div>
                             </div>
                             <div className="text-white text-lg font-normal mt-4 max-w-2xl italic opacity-90">
-                                "{profile.bio}"
+                                "{user.description || 'Chưa có tiểu sử'}"
                             </div>
                             <div className="mt-6 flex flex-row items-center gap-4">
                                 <button 
                                     onClick={handleOpenEdit}
-                                    className="cursor-pointer flex items-center gap-2 bg-white/10 border border-white/20 hover:border-white text-white text-sm font-bold tracking-widest uppercase py-2 px-6 rounded-full transition-all duration-300 ease-in-out hover:scale-105 hover:bg-white/20 backdrop-blur-md"
-                                >
+                                    className="cursor-pointer flex items-center gap-2 bg-white/10 border border-white/20 hover:border-white text-white text-sm font-bold tracking-widest uppercase py-2 px-6 rounded-full transition-all duration-300 ease-in-out hover:scale-105 hover:bg-white/20 backdrop-blur-md">
                                     <PenLine size={16} />
                                     {t('profile.edit_profile')}
                                 </button>
