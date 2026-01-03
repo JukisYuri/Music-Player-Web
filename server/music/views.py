@@ -1,74 +1,63 @@
-# server/music/views.py
 import os
-import base64
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.conf import settings
-from mutagen.mp3 import MP3
-from mutagen.id3 import ID3, APIC
+from django.views import View
+from django.http import JsonResponse, FileResponse, Http404
+from django.shortcuts import get_object_or_404
+from django.urls import reverse
+from .models import Song
+
+def stream_song(request, pk):
+
+    # Lấy bài hát hoặc trả về lỗi 404 nếu không thấy
+    song = get_object_or_404(Song, pk=pk)
+
+    if not song.audio_file:
+        raise Http404("Bài hát này chưa có file audio")
+
+    file_path = song.audio_file.path
+
+    # Kiểm tra file có thực sự tồn tại trên ổ cứng không
+    if not os.path.exists(file_path):
+        raise Http404("File gốc đã bị xóa khỏi server")
+
+    #(read binary)
+    file_handle = open(file_path, 'rb')
+
+    response = FileResponse(file_handle)
+
+    return response
 
 
-class LocalMusicListView(APIView):
+# --- 2. VIEW API LIST NHẠC ---
+class LocalMusicListView(View):
     def get(self, request):
-        # Đường dẫn thư mục: data/music
-        # Vì MEDIA_ROOT đã trỏ vào 'data', ta chỉ cần nối thêm 'music'
-        music_dir = os.path.join(settings.MEDIA_ROOT, 'music')
+        # Lấy tất cả bài hát, sắp xếp mới nhất
+        # songs = Song.objects.all().order_by('-title')
+        songs = Song.objects.all()
 
-        if not os.path.exists(music_dir):
-            return Response([], status=200)
+        data = []
+        for song in songs:
+            # Xử lý URL ảnh cover
+            cover_url = ""
+            if song.cover_image:
+                cover_url = request.build_absolute_uri(song.cover_image.url)
 
-        songs = []
-        index = 1
+            stream_url = reverse('stream-song', args=[song.id])
+            audio_url = request.build_absolute_uri(stream_url)
 
-        for filename in os.listdir(music_dir):
-            if filename.endswith(".mp3"):
-                file_path = os.path.join(music_dir, filename)
+            # Format thời gian (Giây -> mm:ss)
+            m = song.duration // 60
+            s = song.duration % 60
+            duration_fmt = f"{m}:{s:02d}"
 
-                # Tạo URL để React truy cập file nhạc
-                # Ví dụ: http://localhost:8000/media/music/tenbaihat.mp3
-                audio_url = request.build_absolute_uri(f'{settings.MEDIA_URL}music/{filename}')
+            data.append({
+                "id": song.id,
+                "title": song.title,
+                "artist": song.artist.name if song.artist else "Unknown",
+                "cover": cover_url,
+                "audioUrl": audio_url,  # React sẽ gọi link này
+                "duration": duration_fmt,
+                "views": song.views
+            })
 
-                try:
-                    audio = MP3(file_path)
-                    tags = ID3(file_path)
-
-                    # Lấy thông tin (Metadata)
-                    title = tags.get('TIT2')
-                    artist = tags.get('TPE1')
-                    duration = int(audio.info.length)
-
-                    # Xử lý tiêu đề nếu không có tag
-                    title_text = str(title) if title else filename.replace(".mp3", "").replace("_", " ")
-                    artist_text = str(artist) if artist else "Unknown Artist"
-
-                    # Format thời gian (Giây -> mm:ss) cho đẹp
-                    minutes = duration // 60
-                    seconds = duration % 60
-                    duration_str = f"{minutes}:{seconds:02d}"
-
-                    # Xử lý Ảnh bìa (Cover Art) -> Chuyển sang Base64
-                    cover_data = "https://placehold.co/400?text=Music"  # Ảnh mặc định
-                    apic_frames = tags.getall("APIC")
-
-                    if apic_frames:
-                        img_data = apic_frames[0].data
-                        mime_type = apic_frames[0].mime
-                        base64_img = base64.b64encode(img_data).decode('utf-8')
-                        cover_data = f"data:{mime_type};base64,{base64_img}"
-
-                    songs.append({
-                        "id": index,
-                        "title": title_text,
-                        "artist": artist_text,
-                        "duration": duration_str,
-                        "audioUrl": audio_url,  # Link trực tiếp
-                        "cover": cover_data,  # Ảnh base64
-                        "filename": filename
-                    })
-                    index += 1
-
-                except Exception as e:
-                    print(f"Lỗi đọc file {filename}: {e}")
-                    continue
-
-        return Response(songs)
+        # safe=False cho phép trả về List JSON thay vì Dict
+        return JsonResponse(data, safe=False)

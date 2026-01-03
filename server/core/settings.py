@@ -194,6 +194,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/data/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'data')
 
+CORS_ALLOW_ALL_ORIGINS = True
 
 # --- CẤU HÌNH GIAO DIỆN UNFOLD ---
 UNFOLD = {
