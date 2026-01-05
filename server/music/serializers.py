@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Song
 from django.contrib.auth import get_user_model
+import uuid
 
 User = get_user_model()
 class SongSerializer(serializers.ModelSerializer):
@@ -15,19 +16,27 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         # Những trường user cần nhập khi đăng ký
-        fields = ['username', 'email', 'password', 'display_name'] 
+        fields = ['email', 'password'] 
     
     def create(self, validated_data):
+        email = validated_data['email']
+        password = validated_data['password']
         # Đây là chỗ ORM làm việc: Tạo user mới và mã hóa password
-        # create_user là hàm của Django giúp tự động hash password
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password'],
-            display_name=validated_data.get('display_name', '')
+        username = email.split('@')[0]
+        user = User.objects.create_user( # Sử dụng create_user để đảm bảo password được mã hóa
+            email=email,
+            password=password,
+            username=username,
+            is_active=False  # User mới đăng ký chưa active
         )
         return user
+
+# 2. Serializer dùng để xác thực OTP khi đăng ký
+class VerifyEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp_code = serializers.CharField(max_length=6)
     
+# 3. Serializer dùng để cập nhật thông tin User, bao gồm cả OnBoarding từ 2 flow Register và Google Login
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -40,7 +49,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Username này đã có người sử dụng.")
         return value
 
-# 2. Serializer dùng để hiển thị thông tin User (Profile/Context)
+# Serializer dùng để hiển thị thông tin User (Profile/Context)
 class UserSerializer(serializers.ModelSerializer):
     is_in_google_social = serializers.SerializerMethodField()
 

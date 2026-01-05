@@ -5,15 +5,19 @@ import { AuthLayout } from '../components/auth_layout.jsx';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../context/auth_context.jsx';
 
 export function Register() {
+    const { login } = useAuth();
     const { t } = useTranslation();
     const [step, setStep] = useState('form') // 'form' hoặc 'otp'
     const navigate = useNavigate();
-
+    const [email, setEmail] = useState("");
     // Kiểm tra trực tiếp password và confirmPassword
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
+    const [otp, setOtp] = useState("");
     const [timeLeft, setTimeLeft] = useState(0); 
     const [isActive, setIsActive] = useState(false);
 
@@ -34,22 +38,46 @@ export function Register() {
         return () => clearInterval(interval);
         }, [isActive, timeLeft]);
 
-        const handleFormSubmit = (e) => {
-        e.preventDefault();
-        if (step === 'form') {
-            console.log("Đã gửi mã OTP");
-            setStep('otp');
-            setTimeLeft(60); 
-            setIsActive(true);
-        } else {
-            alert("Đăng kí thành công!");
-            navigate('/onboarding');
-        }
-    }
-
     const handleResendOtp = () => {
         setTimeLeft(60);
         setIsActive(true);
+    }
+
+    const handleFormSubmit = async (e) => { // Thêm async
+        e.preventDefault();
+        
+        try {
+            if (step === 'form') {
+                // --- GIAI ĐOẠN 1: GỌI API ĐĂNG KÝ ---
+                // Chỉ gửi email và pass
+                await axios.post('http://localhost:8000/api/register/', { 
+                    email: email, 
+                    password: password 
+                });
+                
+                // Nếu thành công thì mới chuyển step
+                console.log("Đã gửi mã OTP tới:", email);
+                setStep('otp');
+                setTimeLeft(60); 
+                setIsActive(true);
+            } else {
+                // --- GIAI ĐOẠN 2: GỌI API XÁC THỰC OTP ---
+                const res = await axios.post('http://localhost:8000/api/verify-otp/', { 
+                    email: email, 
+                    otp_code: otp 
+                });
+
+                // Lấy token và Login ngay lập tức
+                const { access } = res.data.tokens;
+                await login(access);
+
+                alert("Đăng ký thành công!");
+                navigate('/onboarding');
+            }
+        } catch (error) {
+            console.error(error);
+            alert(error.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại");
+        }
     }
 
     const content = step === 'form' ? {
@@ -79,11 +107,15 @@ export function Register() {
                     <div className='flex flex-col gap-3 mt-4 mb-6'>
                         <RegisterInput
                             step={step}
+                            email={email}
+                            setEmail={setEmail}
                             password={password}
                             confirmPassword={confirmPassword}
                             setPassword={setPassword}
                             setConfirmPassword={setConfirmPassword}
                             isMatchWithoutLength={isMatchWithoutLength}
+                            otp={otp}
+                            setOtp={setOtp}
                         />
                     </div>
                     <div className={`flex items-center justify-between text-xs text-neutral-400 mx-8 transition-all duration-500 ${step === 'otp' ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100 h-auto'}`}>

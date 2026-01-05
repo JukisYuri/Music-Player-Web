@@ -14,9 +14,14 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.parsers import MultiPartParser, FormParser
-from .serializers import UserSerializer, UserUpdateSerializer
+from .serializers import UserSerializer, UserUpdateSerializer, RegisterSerializer, VerifyEmailSerializer
 import requests
 import uuid
+import random
+from django.core.mail import send_mail
+from django.utils import timezone
+from datetime import timedelta
+from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
 
@@ -130,6 +135,68 @@ class GoogleLoginView(APIView):
                 'username': user.username
             }
         })
+
+# --- API 1: REGISTER ---
+class RegisterView(APIView):
+    def post(self, request):
+        # 1. Validate & Tạo User (Serializer làm việc này)
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save(is_active=False) # User chưa kích hoạt
+            
+            # 2. Sinh OTP
+            otp = str(random.randint(100000, 999999))
+            print("Mã OTP sinh ra:", otp)  # DEBUG
+            user.otp_code = otp
+            user.otp_created_at = timezone.now()
+            user.save()
+            
+            # 3. Gửi Email (Cấu hình SMTP trong settings.py)
+            send_mail(
+                'Mã xác thực đăng ký',
+                f'Mã OTP của bạn là: {otp}',
+                'admin@musicapp.com',
+                [user.email],
+                fail_silently=False,
+            )
+            
+            return Response({"message": "OTP đã gửi!"}, status=201)
+        return Response(serializer.errors, status=400)
+
+# --- API 2: VERIFY OTP ---
+class VerifyOTPView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        otp_input = request.data.get('otp_code')
+        
+        try:
+            user = User.objects.get(email=email)
+            
+            # 1. Kiểm tra OTP
+            if user.otp_code != otp_input:
+                return Response({"message": "Sai mã OTP"}, status=400)
+            
+            # 2. Kiểm tra hết hạn (ví dụ 5 phút)
+            if timezone.now() > user.otp_created_at + timedelta(minutes=5):
+                 return Response({"message": "Mã OTP đã hết hạn"}, status=400)
+
+            # 3. Kích hoạt User & Xóa OTP
+            user.is_active = True
+            user.otp_code = None 
+            user.save()
+            
+            # 4. Tạo Token JWT
+            refresh = RefreshToken.for_user(user)
+            
+            return Response({
+                "tokens": {
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                }
+            }, status=200)
+            
+        except User.DoesNotExist:
+            return Response({"message": "User không tồn tại"}, status=404)
 
 # 3. (Onboarding Submit)
 class UpdateProfileView(generics.UpdateAPIView):

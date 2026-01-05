@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAuth } from '../context/auth_context';
 
 import {
     Library,
@@ -8,11 +9,12 @@ import {
     Mic2
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 export function Sidebar() {
-    const userName = "Oleny";
+    const { user } = useAuth();
     const { t } = useTranslation();
+    const location = useLocation();
 
     const navigation = [
         { name: t('sidebar.library'), href: '/library', icon: Library },
@@ -31,7 +33,7 @@ export function Sidebar() {
             <div className="text-white">
                 <p className="text-xl font-bold text-green-400"
                     style={{ textShadow: '0 0 6px rgba(74, 222, 128, 0.8), 0 0 12px rgba(74, 222, 128, 0.4)' }}>
-                    {t('sidebar.hello')} {userName},
+                    {t('sidebar.hello')} {user?.display_name || 'User'}!,
                 </p>
                 <p className="text-sm text-neutral-400">{t('sidebar.description')}</p>
             </div>

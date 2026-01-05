@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { useAuth } from '../components/auth_context.jsx'; // Đảm bảo đường dẫn đúng
+import { useAuth } from '../context/auth_context.jsx'; // Đảm bảo đường dẫn đúng
 import { LogoutConfirmModal } from './logout_confirm_modal.jsx';
 import {
     Home,

@@ -7,7 +7,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from '../components/auth_context.jsx';
+import { useAuth } from '../context/auth_context.jsx';
 
 export function Login() {
     const { t } = useTranslation();

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { CircleUser, Camera, AtSign, Sparkles, Check, Music } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../components/auth_context.jsx";
+import { useAuth } from "../context/auth_context.jsx";
 import axios from 'axios';
 
 export function OnBoarding() {

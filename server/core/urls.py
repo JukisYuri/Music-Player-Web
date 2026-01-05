@@ -18,16 +18,18 @@ from django.contrib import admin
 from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
-from music.views import GoogleLoginView, UpdateProfileView, UserProfileView
+from music.views import GoogleLoginView, UpdateProfileView, UserProfileView, RegisterView, VerifyOTPView
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path('api/', include('users.urls')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('api/music/', include('music.urls')),
     path('api/voice/', include('speechToText.urls')),
-path('api/auth/google/', GoogleLoginView.as_view()),
+    path('api/auth/google/', GoogleLoginView.as_view()),
     path('api/user/update-profile/', UpdateProfileView.as_view()), # URL cho Onboarding
     path('api/user/me/', UserProfileView.as_view()),
+    path('api/register/', RegisterView.as_view(), name='register'),
+    path('api/verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

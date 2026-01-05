@@ -7,6 +7,8 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     profile_image_url = models.ImageField(upload_to='avatars/', blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+    otp_code = models.CharField(max_length=6, null=True, blank=True)
+    otp_created_at = models.DateTimeField(null=True, blank=True)
     
     def __str__(self):
         return self.username

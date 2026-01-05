@@ -193,7 +193,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/data/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'data')
-
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # --- CẤU HÌNH GIAO DIỆN UNFOLD ---
 UNFOLD = {

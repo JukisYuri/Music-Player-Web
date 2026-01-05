@@ -3,7 +3,7 @@ import { PenLine, X, Save, Camera } from 'lucide-react';
 import { ProfileListSong } from './profile_listsong'; // Đảm bảo file này tồn tại
 import { useTranslation } from 'react-i18next';
 import axios from 'axios'; // 1. Thêm import axios
-import { useAuth } from './auth_context';
+import { useAuth } from '../context/auth_context.jsx';
 
 export function ProfileContent() {
     const { t } = useTranslation();

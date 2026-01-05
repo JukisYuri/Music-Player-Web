@@ -1,7 +1,7 @@
-import { KeyRound, CircleUser, AtSign, RotateCcwKey, ShieldCheck } from 'lucide-react';
+import { KeyRound, AtSign, RotateCcwKey, ShieldCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-export function RegisterInput({ step = 'form', password, confirmPassword, setPassword, setConfirmPassword, isMatchWithoutLength }) {
+export function RegisterInput({ step = 'form', email, setEmail, password, confirmPassword, setPassword, setConfirmPassword, isMatchWithoutLength, otp, setOtp }) {
     const isOtpStep = step === 'otp'
     const { t } = useTranslation();
 
@@ -11,6 +11,7 @@ export function RegisterInput({ step = 'form', password, confirmPassword, setPas
         // Chỉ cho phép nhập số
         const numericValue = value.replace(/[^0-9]/g, '');
         e.target.value = numericValue;
+        setOtp(numericValue);
     }
 
     return (
@@ -20,7 +21,9 @@ export function RegisterInput({ step = 'form', password, confirmPassword, setPas
                 <label className={`text-sm font-medium ml-1 flex flex-row gap-1 items-center transition-all duration-500 ease-in-out
                     ${isOtpStep ? 'text-green-200 drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]' : 'text-neutral-300'}`}><AtSign  size={16} />Email</label>
                 <input 
-                    type="text" 
+                    type="text"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     // Logic class chuyển trạng thái khi đang ở bước OTP
                     readOnly={isOtpStep}
                     tabIndex={isOtpStep ? -1 : 0}
@@ -80,7 +83,8 @@ export function RegisterInput({ step = 'form', password, confirmPassword, setPas
                         <input 
                             type="text"
                             maxLength={6}
-                            onInput={checkOtp}
+                            value={otp}
+                            onChange={checkOtp}
                             className="w-full bg-neutral-800/50 border border-neutral-700/50 rounded-[5px] py-3.5 pl-3 pr-10 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 transition-all"
                             placeholder={t('register.otp_placeholder')}
                             required={isOtpStep}

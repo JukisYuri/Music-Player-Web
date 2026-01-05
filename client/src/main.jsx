@@ -5,7 +5,7 @@ import App from './App.jsx'
 import './i18n.js';
 import { BrowserRouter } from 'react-router-dom' 
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { AuthProvider } from './components/auth_context.jsx';
+import { AuthProvider } from './context/auth_context.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
