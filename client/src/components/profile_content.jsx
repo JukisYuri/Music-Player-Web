@@ -72,7 +72,7 @@ export function ProfileContent() {
 
     // Helper: Xử lý link ảnh (ghép localhost nếu cần)
     const getAvatarUrl = (path) => {
-        if (!path) return 'https://placehold.co/400?text=No+Avatar';
+        if (!path) return 'https://i.pinimg.com/736x/c5/ae/a6/c5aea65e8537746d6c8af1de3eea04f6.jpg'; // Không có avatar nào thì trỏ vào đây
         if (path.startsWith('http')) return path;
         return `http://localhost:8000${path}`;
     };
