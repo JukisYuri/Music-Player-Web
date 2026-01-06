@@ -7,24 +7,19 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../context/auth_context.jsx';
 
 export function Login() {
     const { t } = useTranslation();
+    const { login } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
 
-    const handleLoginSubmit = async (e) => {
-        e.preventDefault(); // Chặn việc load lại trang mặc định của form
-        try {
-            console.log("Đang xử lý đăng nhập...");
-            const isSuccess = true; 
-            if (isSuccess) {
-                navigate('/index'); 
-            }
-        } catch (error) {
-            console.error("Đăng nhập thất bại", error);
-            alert("Sai thông tin đăng nhập!");
-        }
+    const handleLoginSubmit = (response) => {
+        const { access, user } = response.data;
+        login(access, user); // Lưu token vào Context
+        console.log("Login success!", response.data);
+        navigate('/index');
     };
     
     const handleGoogleLogin = useGoogleLogin({
@@ -36,11 +31,14 @@ export function Login() {
             const res = await axios.post('http://localhost:8000/api/auth/google/', {
               access_token: tokenResponse.access_token, 
             });
-            // Django trả về JWT (access & refresh token)
-            console.log("Login success!", res.data);
-            // Lưu token vào localStorage hoặc cookie
-            localStorage.setItem('token', res.data.access);
-            
+            await login(res.data.access); // Lưu token vào Context
+            if (res.data.is_new_user) {
+                // Django trả về JWT (access & refresh token)
+                console.log("Login success!", res.data);
+                navigate('/onboarding')
+            } else {
+                navigate('/index')
+            }
           } catch (error) {
             console.error("Login failed", error);
           }

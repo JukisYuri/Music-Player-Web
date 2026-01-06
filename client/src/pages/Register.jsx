@@ -5,19 +5,26 @@ import { AuthLayout } from '../components/auth_layout.jsx';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../context/auth_context.jsx';
 
 export function Register() {
+    const { login } = useAuth();
     const { t } = useTranslation();
     const [step, setStep] = useState('form') // 'form' hoặc 'otp'
     const navigate = useNavigate();
-
+    const [email, setEmail] = useState("");
     // Kiểm tra trực tiếp password và confirmPassword
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
+    const [otp, setOtp] = useState("");
     const [timeLeft, setTimeLeft] = useState(0); 
     const [isActive, setIsActive] = useState(false);
 
-    const isMatch = password === confirmPassword && password.length > 0
+    // Thêm trạng thái đồng ý điều khoản
+    const [agreeTerms, setAgreeTerms] = useState(false);
+
+    const isMatch = password === confirmPassword && password.length > 0 && agreeTerms
     const isMatchWithoutLength = password === confirmPassword
 
     useEffect(() => {
@@ -34,22 +41,53 @@ export function Register() {
         return () => clearInterval(interval);
         }, [isActive, timeLeft]);
 
-        const handleFormSubmit = (e) => {
-        e.preventDefault();
-        if (step === 'form') {
-            console.log("Đã gửi mã OTP");
-            setStep('otp');
-            setTimeLeft(60); 
+    const handleResendOtp = async () => {
+        try {
+            await axios.post('http://localhost:8000/api/resend-otp/', { email: email, });
+            setTimeLeft(60);
             setIsActive(true);
-        } else {
-            alert("Đăng kí thành công!");
-            navigate('/onboarding');
-        }
+            } catch (error) {
+                console.error("Lỗi khi gửi lại OTP:", error);
+                const msg = error.response?.data?.message || "Có lỗi xảy ra khi gửi lại OTP";
+                alert(msg);
+            }
     }
 
-    const handleResendOtp = () => {
-        setTimeLeft(60);
-        setIsActive(true);
+    const handleFormSubmit = async (e) => { // Thêm async
+        e.preventDefault();
+        
+        try {
+            if (step === 'form') {
+                // --- GIAI ĐOẠN 1: GỌI API ĐĂNG KÝ ---
+                // Chỉ gửi email và pass
+                await axios.post('http://localhost:8000/api/register/', { 
+                    email: email, 
+                    password: password 
+                });
+                
+                // Nếu thành công thì mới chuyển step
+                console.log("Đã gửi mã OTP tới:", email);
+                setStep('otp');
+                setTimeLeft(60); 
+                setIsActive(true);
+            } else {
+                // --- GIAI ĐOẠN 2: GỌI API XÁC THỰC OTP ---
+                const res = await axios.post('http://localhost:8000/api/verify-otp/', { 
+                    email: email, 
+                    otp_code: otp 
+                });
+
+                // Lấy token và Login ngay lập tức
+                const { access } = res.data.tokens;
+                await login(access);
+
+                alert("Đăng ký thành công!");
+                navigate('/onboarding');
+            }
+        } catch (error) {
+            console.error(error);
+            alert(error.response?.data?.message || "Email sai định dạng hoặc đã có người sử dụng!");
+        }
     }
 
     const content = step === 'form' ? {
@@ -79,16 +117,22 @@ export function Register() {
                     <div className='flex flex-col gap-3 mt-4 mb-6'>
                         <RegisterInput
                             step={step}
+                            email={email}
+                            setEmail={setEmail}
                             password={password}
                             confirmPassword={confirmPassword}
                             setPassword={setPassword}
                             setConfirmPassword={setConfirmPassword}
                             isMatchWithoutLength={isMatchWithoutLength}
+                            otp={otp}
+                            setOtp={setOtp}
                         />
                     </div>
                     <div className={`flex items-center justify-between text-xs text-neutral-400 mx-8 transition-all duration-500 ${step === 'otp' ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100 h-auto'}`}>
                         <label className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
-                            <input type="checkbox" className="w-3.5 h-3.5 rounded bg-neutral-800 border-neutral-700 checked:bg-green-500 checked:border-green-500 focus:ring-0 focus:ring-offset-0 accent-green-500" />
+                            <input type="checkbox" className="w-3.5 h-3.5 rounded bg-neutral-800 border-neutral-700 checked:bg-green-500 checked:border-green-500 focus:ring-0 focus:ring-offset-0 accent-green-500" 
+                                checked={agreeTerms}
+                                onChange={(e) => setAgreeTerms(e.target.checked)}/>
                             {t('register.terms_agree')}
                         </label>
                     </div>

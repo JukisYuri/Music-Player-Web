@@ -195,6 +195,7 @@ MEDIA_URL = '/data/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'data')
 
 CORS_ALLOW_ALL_ORIGINS = True
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # --- CẤU HÌNH GIAO DIỆN UNFOLD ---
 UNFOLD = {

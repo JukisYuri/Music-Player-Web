@@ -37,7 +37,12 @@
       "following": "Following",
       "followed": "followed",
       "no_followed": "You are not following anyone",
-      "edit_profile2": "Edit Information"
+      "edit_profile2": "Edit Information",
+      "is_loading": "Loading information...",
+      "no_user": "Please log in to view this profile",
+      "no_bio": "No bio has been added yet",
+      "bio": "Write something about yourself",
+      "click_to_change": "Click to change"
     },
     "logout_confirm_modal": {
       "title": "Confirm Logout",

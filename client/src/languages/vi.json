@@ -37,7 +37,12 @@
       "following": "Đang theo dõi",
       "followed": "theo dõi",
       "no_followed": "Bạn chưa theo dõi ai cả",
-      "edit_profile2": "Chỉnh sửa thông tin"
+      "edit_profile2": "Chỉnh sửa thông tin",
+      "is_loading": "Đang tải thông tin...",
+      "no_user": "Vui lòng đăng nhập để xem hồ sơ này",
+      "no_bio": "Chưa có tiểu sử nào được cập nhật",
+      "bio": "Viết gì đó về bạn",
+      "click_to_change": "Nhấn vào để thay đổi"
     }, 
     "logout_confirm_modal": {
       "title": "Xác nhận Đăng xuất",
