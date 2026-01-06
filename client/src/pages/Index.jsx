@@ -61,24 +61,19 @@ export function Index() {
 
     // 2. Group Albums by Artist
     useEffect(() => {
-        if (playlist.length === 0) return;
-        const grouped = {};
-        playlist.forEach(song => {
-            const artist = song.artist || "Unknown";
-            if (!grouped[artist]) {
-                grouped[artist] = {
-                    id: `alb-${artist}`,
-                    title: `Tuyển tập ${artist}`,
-                    artist: artist,
-                    cover: song.cover,
-                    color: getRandomColor(),
-                    songs: []
-                };
+        const fetchTopAlbums = async () => {
+            try {
+                const res = await fetch(`http://127.0.0.1:8000/api/music/top-albums/`);
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    setAlbums(data);
+                }
+            } catch (err) {
+                console.error("Lỗi lấy top album:", err);
             }
-            grouped[artist].songs.push(song);
-        });
-        setAlbums(Object.values(grouped));
-    }, [playlist]);
+        };
+        fetchTopAlbums();
+    }, []);
 
     // 3. Play Logic
     const handlePlaySong = (song) => {
@@ -243,10 +238,17 @@ export function Index() {
                     {/* ALBUMS */}
                     <section>
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold flex items-center gap-2"><Disc
-                                className="text-green-500"/> {t('home_page.popular_albums')}</h2>
+                            <h2 className="text-2xl font-bold flex items-center gap-2">
+                                <Disc className="text-green-500"/>
+                                {t('home_page.popular_albums')} (Top View)
+                            </h2>
                         </div>
-                        <PlaylistTracks albums={albums} onPlayAlbum={handlePlayAlbum}/>
+
+                        {/* Truyền albums thật vào component hiển thị */}
+                        <PlaylistTracks
+                            albums={albums}
+                            onPlayAlbum={(album) => console.log("Cần viết thêm API lấy bài hát theo Album ID:", album.id)}
+                        />
                     </section>
                 </main>
             </div>

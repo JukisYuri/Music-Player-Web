@@ -1,56 +1,58 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.db.models import Count
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import display
 from .models import Artist, Album, Song, Playlist, PlaylistSong
 
 
-# 1. Quản lý Ca sĩ
 @admin.register(Artist)
 class ArtistAdmin(ModelAdmin):
-    list_display = ('name', 'album_count', 'created_at')
+    list_display = ('name', 'song_count', 'created_at')
     search_fields = ('name',)
-
-    # Hiển thị số lượng album của ca sĩ
-    @display(description="Số Album")
-    def album_count(self, obj):
-        return obj.albums.count()
+    ordering = ('-song_count',)
 
 
-# 2. Quản lý Album
 @admin.register(Album)
 class AlbumAdmin(ModelAdmin):
-    list_display = ('title', 'artist', 'release_date', 'song_count')
-    list_filter = ('artist',)
-    search_fields = ('title', 'artist__name')
+    list_display = ('title', 'get_artists', 'release_date', 'song_count')
+    list_filter = ('artists',)
+    search_fields = ('title', 'artists__name')
 
-    @display(description="Số bài hát")
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.annotate(songs_count_annotated=Count('songs'))
+
+    @display(description="Số bài hát", ordering='songs_count_annotated')
     def song_count(self, obj):
         return obj.songs.count()
 
+    @display(description="Nghệ sĩ")
+    def get_artists(self, obj):
+        return ", ".join([a.name for a in obj.artists.all()])
 
-# 3. Quản lý Bài hát
+
 @admin.register(Song)
 class SongAdmin(ModelAdmin):
-    list_display = ('title_display', 'artist', 'album', 'duration_fmt', 'views_badge')
-    list_filter = ('artist', 'album')
-    search_fields = ('title', 'artist__name')
+    list_display = ('title_display', 'get_artists', 'album', 'duration_fmt', 'views_badge')
+    list_filter = ('artists', 'album')
+    search_fields = ('title', 'artists__name')
     readonly_fields = ('views',)
     list_per_page = 20
 
-    # Hiển thị tên bài hát in đậm
+    @display(description="Tên bài hát", ordering='title')
     def title_display(self, obj):
         return format_html("<b>{}</b>", obj.title)
 
-    title_display.short_description = "Tên bài hát"
+    @display(description="Nghệ sĩ")
+    def get_artists(self, obj):
+        return ", ".join([a.name for a in obj.artists.all()])
 
-    # Hiển thị lượt nghe dạng Badge (Nhãn)
-    @display(description="Lượt nghe", label=True)
+    @display(description="Lượt nghe", label=True, ordering='views')
     def views_badge(self, obj):
         return obj.views
 
-    # Format thời gian
-    @display(description="Thời lượng")
+    @display(description="Thời lượng", ordering='duration')
     def duration_fmt(self, obj):
         if not obj.duration: return "0:00"
         m = obj.duration // 60
@@ -58,11 +60,10 @@ class SongAdmin(ModelAdmin):
         return f"{m}:{s:02d}"
 
 
-# 4. Quản lý Playlist (Dùng TabularInline của Unfold)
 class PlaylistSongInline(TabularInline):
     model = PlaylistSong
     extra = 1
-    tab = True  # Giao diện Tab đẹp hơn
+    tab = True
 
 
 @admin.register(Playlist)
@@ -71,10 +72,14 @@ class PlaylistAdmin(ModelAdmin):
     search_fields = ('title', 'user__username')
     inlines = [PlaylistSongInline]
 
-    @display(description="Số lượng bài")
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.annotate(songs_count_annotated=Count('songs'))
+
+    @display(description="Số lượng bài", ordering='songs_count_annotated')
     def song_count(self, obj):
         return obj.songs.count()
 
-    @display(description="Trạng thái", boolean=True)
+    @display(description="Trạng thái", boolean=True, ordering='is_public')
     def is_public_badge(self, obj):
         return obj.is_public
