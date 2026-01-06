@@ -14,9 +14,10 @@ class SpeechtotextConfig(AppConfig):
             pass
 
         try:
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            self.model = whisper.load_model("base", device=device)
+            # device = "cuda" if torch.cuda.is_available() else "cpu"
+            # self.model = whisper.load_model("medium", device=device)
 
+            # print(device)
             print("--- Whisper Model đã sẵn sàng! ---")
         except Exception as e:
             print(f"Không thể tải model: {e}")
