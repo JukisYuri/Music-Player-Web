@@ -17,10 +17,10 @@ export function PlaylistTracks({ albums, onPlayAlbum }) {
                     className="group relative bg-neutral-800/40 hover:bg-neutral-800 p-4 rounded-xl transition-all duration-300 cursor-pointer"
                 >
                     <div className="relative aspect-square mb-4 rounded-lg overflow-hidden shadow-lg">
-                        {album.cover && album.cover.startsWith("data:") ? (
+                        {album.cover ? (
                             <img src={album.cover} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                         ) : (
-                            <div className={`w-full h-full bg-linear-to-br ${album.color}`}></div>
+                            <div className={`w-full h-full bg-linear-to-br ${album.color || 'from-gray-700 to-gray-900'}`}></div>
                         )}
 
                         <button
