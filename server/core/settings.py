@@ -190,7 +190,6 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 MEDIA_URL = '/data/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'data')
 
@@ -265,7 +264,7 @@ UNFOLD = {
                         "title": _("Tài khoản"),
                         "icon": "group",
                         # SỬA Ở ĐÂY
-                        "link": reverse_lazy("admin:auth_user_changelist"),
+                        "link": reverse_lazy("admin:authentication_user_changelist"),
                     },
                 ],
             },
