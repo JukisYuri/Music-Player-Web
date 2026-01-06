@@ -1,10 +1,11 @@
 from django.db.models import Sum, Count
 from django.utils.translation import gettext_lazy as _
-from .models import Song, Album, Artist, Playlist
+from .models import Song, Album, Artist
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 import datetime
 
-User = get_user_model()
+
 def dashboard_callback(request, context):
     # 1. TÍNH TOÁN SỐ LIỆU TỔNG QUAN (KPI)
     total_songs = Song.objects.count()

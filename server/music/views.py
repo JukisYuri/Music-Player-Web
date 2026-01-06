@@ -1,11 +1,14 @@
-# server/music/views.py
 import os
 import base64
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.views import View
+from django.http import JsonResponse, FileResponse, Http404
+from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django.conf import settings
-from mutagen.mp3 import MP3
-from mutagen.id3 import ID3, APIC
+from .models import Song
+from .models import Album
+from django.db.models import Sum
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics
@@ -25,70 +28,94 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
 
-class LocalMusicListView(APIView):
+def stream_song(request, pk):
+
+    # Lấy bài hát hoặc trả về lỗi 404 nếu không thấy
+    song = get_object_or_404(Song, pk=pk)
+    if not song.audio_file:
+        raise Http404("Bài hát này chưa có file audio")
+    file_path = song.audio_file.path
+
+    # Kiểm tra file có thực sự tồn tại trên ổ cứng không
+    if not os.path.exists(file_path):
+        raise Http404("File gốc đã bị xóa khỏi server")
+
+    #(read binary)
+    file_handle = open(file_path, 'rb')
+    response = FileResponse(file_handle)
+    return response
+
+
+# --- 2. VIEW API LIST NHẠC ---
+class LocalMusicListView(View):
     def get(self, request):
-        # Đường dẫn thư mục: data/music
-        # Vì MEDIA_ROOT đã trỏ vào 'data', ta chỉ cần nối thêm 'music'
-        music_dir = os.path.join(settings.MEDIA_ROOT, 'music')
+        songs = Song.objects.all().prefetch_related('artists')
+        data = []
+        for song in songs:
+            cover_url = request.build_absolute_uri(song.cover_image.url) if song.cover_image else ""
+            audio_url = request.build_absolute_uri(reverse('stream-song', args=[song.id]))
 
-        if not os.path.exists(music_dir):
-            return Response([], status=200)
+            # Nối tên nghệ sĩ
+            artist_str = ", ".join([a.name for a in song.artists.all()])
 
-        songs = []
-        index = 1
+            m = song.duration // 60
+            s = song.duration % 60
 
-        for filename in os.listdir(music_dir):
-            if filename.endswith(".mp3"):
-                file_path = os.path.join(music_dir, filename)
+            data.append({
+                "id": song.id,
+                "title": song.title,
+                "artist": artist_str,
+                "cover": cover_url,
+                "audioUrl": audio_url,
+                "duration": f"{m}:{s:02d}",
+                "views": song.views
+            })
+        return JsonResponse(data, safe=False)
 
-                # Tạo URL để React truy cập file nhạc
-                # Ví dụ: http://localhost:8000/media/music/tenbaihat.mp3
-                audio_url = request.build_absolute_uri(f'{settings.MEDIA_URL}music/{filename}')
+# Tính View
+@csrf_exempt
+def increment_view(request, pk):
+    if request.method == 'POST':
+        try:
+            song = Song.objects.get(pk=pk)
+            song.views += 1
+            song.save()
+            return JsonResponse({'status': 'success', 'views': song.views})
+        except Song.DoesNotExist:
+            return JsonResponse({'status': 'error'}, status=404)
+    return JsonResponse({'status': 'error'}, status=405)
 
-                try:
-                    audio = MP3(file_path)
-                    tags = ID3(file_path)
+# Lấy top album
+class TopAlbumsView(View):
+    def get(self, request):
+        # Lấy top 10 album theo view
+        albums = Album.objects.annotate(
+            total_views=Sum('songs__views')
+        ).order_by('-total_views')[:10].prefetch_related('songs', 'artists')
 
-                    # Lấy thông tin (Metadata)
-                    title = tags.get('TIT2')
-                    artist = tags.get('TPE1')
-                    duration = int(audio.info.length)
+        data = []
+        for album in albums:
+            cover_url = ""
+            first_song = album.songs.first()
 
-                    # Xử lý tiêu đề nếu không có tag
-                    title_text = str(title) if title else filename.replace(".mp3", "").replace("_", " ")
-                    artist_text = str(artist) if artist else "Unknown Artist"
+            if first_song and first_song.cover_image:
+                cover_url = request.build_absolute_uri(first_song.cover_image.url)
+            elif album.cover_image:
+                cover_url = request.build_absolute_uri(album.cover_image.url)
 
-                    # Format thời gian (Giây -> mm:ss) cho đẹp
-                    minutes = duration // 60
-                    seconds = duration % 60
-                    duration_str = f"{minutes}:{seconds:02d}"
+            # Nối tên nghệ sĩ Album
+            artists_str = ", ".join([a.name for a in album.artists.all()]) or "Various Artists"
 
-                    # Xử lý Ảnh bìa (Cover Art) -> Chuyển sang Base64
-                    cover_data = "https://placehold.co/400?text=Music"  # Ảnh mặc định
-                    apic_frames = tags.getall("APIC")
+            data.append({
+                "id": album.id,
+                "title": album.title,
+                "artist": artists_str,
+                "cover": cover_url,
+                "total_views": album.total_views or 0
+            })
 
-                    if apic_frames:
-                        img_data = apic_frames[0].data
-                        mime_type = apic_frames[0].mime
-                        base64_img = base64.b64encode(img_data).decode('utf-8')
-                        cover_data = f"data:{mime_type};base64,{base64_img}"
+        return JsonResponse(data, safe=False)
 
-                    songs.append({
-                        "id": index,
-                        "title": title_text,
-                        "artist": artist_text,
-                        "duration": duration_str,
-                        "audioUrl": audio_url,  # Link trực tiếp
-                        "cover": cover_data,  # Ảnh base64
-                        "filename": filename
-                    })
-                    index += 1
-
-                except Exception as e:
-                    print(f"Lỗi đọc file {filename}: {e}")
-                    continue
-
-        return Response(songs)
 
 class GoogleLoginView(APIView):
     def post(self, request):
@@ -145,7 +172,7 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save(is_active=False) # User chưa kích hoạt
-            
+
             # 2. Sinh OTP
             otp = str(random.randint(100000, 999999))
             print("Mã OTP sinh ra:", otp)  # DEBUG
@@ -160,7 +187,7 @@ class RegisterView(APIView):
                 [user.email],
                 fail_silently=False,
             )
-            
+
             return Response({"message": "OTP đã gửi!"}, status=201)
         return Response(serializer.errors, status=400)
 
@@ -175,7 +202,7 @@ class ResendOTPView(APIView):
             # 1. Sinh OTP mới
             if user.is_active:
                 return Response({"message": "Tài khoản đã được kích hoạt"}, status=400)
-            
+
             otp = str(random.randint(100000, 999999))
             print("Mã OTP mới (Resend):", otp)  # DEBUG
             user.otp_code = otp
@@ -189,46 +216,46 @@ class ResendOTPView(APIView):
                 [user.email],
                 fail_silently=False,
             )
-            
+
             return Response({"message": "OTP mới đã gửi!"}, status=200)
         except User.DoesNotExist:
             return Response({"message": "Người dùng không tồn tại"}, status=404)
-             
+
 # -- Verify OTP ----
 class VerifyOTPView(APIView):
     def post(self, request):
         email = request.data.get('email')
         otp_input = request.data.get('otp_code')
-        
+
         try:
             user = User.objects.get(email=email)
-            
+
             # 1. Kiểm tra OTP
             if user.otp_code != otp_input:
                 return Response({"message": "Sai mã OTP"}, status=400)
-            
+
             # 2. Kiểm tra hết hạn
             if timezone.now() > user.otp_created_at + timedelta(minutes=1):
                  return Response({"message": "Mã OTP đã hết hạn"}, status=400)
 
             # 3. Kích hoạt User & Xóa OTP
             user.is_active = True
-            user.otp_code = None 
+            user.otp_code = None
             user.save()
-            
+
             # 4. Tạo Token JWT
             refresh = RefreshToken.for_user(user)
-            
+
             return Response({
                 "tokens": {
                     'refresh': str(refresh),
                     'access': str(refresh.access_token),
                 }
             }, status=200)
-            
+
         except User.DoesNotExist:
             return Response({"message": "Người dùng không tồn tại"}, status=404)
-        
+
 # --- Forgot Password  ----
 class ForgotPasswordView(APIView):
     # Quan trọng: Cho phép ai cũng gọi được (vì quên mật khẩu thì chưa login được)
@@ -255,7 +282,7 @@ class ForgotPasswordView(APIView):
                 [user.email],
                 fail_silently=False,
             )
-            
+
             return Response({"message": "OTP đã gửi!"}, status=200)
         except User.DoesNotExist:
             return Response({"message": "Người dùng không tồn tại"}, status=404)
@@ -264,7 +291,7 @@ class ForgotPasswordView(APIView):
 
 # --- Reset Password and Verify OTP ----
 class ResetPasswordView(APIView):
-    permission_classes = [] 
+    permission_classes = []
 
     def post(self, request):
         # Lấy đủ 3 dữ liệu frontend gửi lên
@@ -280,7 +307,7 @@ class ResetPasswordView(APIView):
             # 1. Kiểm tra OTP có khớp không?
             if user.otp_code != otp_input:
                  return Response({"message": "Mã OTP không đúng"}, status=400)
-            
+
             # 2. Kiểm tra OTP có hết hạn không? (ví dụ 5 phút)
             if timezone.now() > user.otp_created_at + timedelta(minutes=5):
                  return Response({"message": "Mã OTP đã hết hạn, vui lòng lấy lại"}, status=400)
@@ -288,7 +315,7 @@ class ResetPasswordView(APIView):
             # 3. Đổi mật khẩu
             # Hàm set_password sẽ tự động mã hóa (Hash) mật khẩu mới
             user.set_password(new_password)
-            
+
             # 4. Dọn dẹp OTP sau khi dùng xong
             user.otp_code = None
             user.save()
@@ -308,16 +335,16 @@ class UpdateProfileView(generics.UpdateAPIView):
     def get_object(self):
         # Đảm bảo user chỉ sửa được chính mình
         return self.request.user
-    
+
     def update(self, request, *args, **kwargs):
         print("--- DEBUG UPDATE PROFILE ---")
         print("Dữ liệu text nhận được:", request.data)
         print("File ảnh nhận được:", request.FILES)
-    
+
         return super().update(request, *args, **kwargs)
-    
+
 class UserProfileView(generics.RetrieveAPIView):
-    serializer_class = UserSerializer 
+    serializer_class = UserSerializer
     # Bắt buộc phải có Token mới xem được
     permission_classes = [IsAuthenticated]
     def get_object(self):

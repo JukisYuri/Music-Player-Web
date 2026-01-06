@@ -18,6 +18,7 @@ class Artist(models.Model):
     bio = models.TextField(blank=True, null=True)
     avatar = models.ImageField(upload_to='artists/', default='artists/default.jpg')
     created_at = models.DateTimeField(auto_now_add=True)
+    song_count = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
@@ -26,7 +27,7 @@ class Artist(models.Model):
 # 2. Bảng Album
 class Album(models.Model):
     title = models.CharField(max_length=255)
-    artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name='albums')
+    artists = models.ManyToManyField(Artist, related_name='albums', blank=True)
     cover_image = models.ImageField(upload_to='albums/', default='albums/default.jpg')
     release_date = models.DateField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
@@ -38,16 +39,14 @@ class Album(models.Model):
 # 3. Bảng Bài hát
 class Song(models.Model):
     title = models.CharField(max_length=255)
-    artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name='songs')
+    artists = models.ManyToManyField(Artist, related_name='songs', blank=True)
+
     album = models.ForeignKey(Album, on_delete=models.SET_NULL, null=True, blank=True, related_name='songs')
-
     audio_file = models.FileField(upload_to='songs/')
-    cover_image = models.ImageField(upload_to='songs/covers/', blank=True, null=True)
-    duration = models.IntegerField(help_text="Thời lượng tính bằng giây", default=0)
-
+    cover_image = models.ImageField(upload_to='image/', blank=True, null=True)
+    duration = models.IntegerField(default=0)
     views = models.IntegerField(default=0)
     likes = models.ManyToManyField(User, related_name='liked_songs', blank=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
