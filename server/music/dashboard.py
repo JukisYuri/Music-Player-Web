@@ -2,8 +2,9 @@ from django.db.models import Sum, Count
 from django.utils.translation import gettext_lazy as _
 from .models import Song, Album, Artist
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
 import datetime
+
+User = get_user_model()
 
 
 def dashboard_callback(request, context):
@@ -12,36 +13,37 @@ def dashboard_callback(request, context):
     total_albums = Album.objects.count()
     total_artists = Artist.objects.count()
 
-    # Tính tổng lượt nghe (nếu field views là null thì coi là 0)
+    # Tính tổng lượt nghe
     total_views_data = Song.objects.aggregate(Sum('views'))
     total_views = total_views_data['views__sum'] or 0
 
-    # Tính user mới trong 30 ngày qua (Ví dụ về logic phức tạp hơn)
+    # Tính user mới trong 30 ngày qua
     last_month = datetime.date.today() - datetime.timedelta(days=30)
+
+    # Giờ đây User.objects sẽ hoạt động đúng vì nó trỏ vào authentication.User
     new_users = User.objects.filter(date_joined__gte=last_month).count()
 
-    # 2. CHUẨN BỊ DỮ LIỆU BIỂU ĐỒ (TOP 5 CA SĨ CÓ NHIỀU BÀI NHẤT)
-    # Lấy top 5 ca sĩ, đếm số bài hát của họ
-    top_artists = Artist.objects.annotate(song_count=Count('songs')).order_by('-song_count')[:5]
+    # 2. CHUẨN BỊ DỮ LIỆU BIỂU ĐỒ
+    # Dùng field song_count có sẵn trong model Artist để sort
+    top_artists = Artist.objects.all().order_by('-song_count')[:5]
 
     artist_names = [artist.name for artist in top_artists]
     artist_song_counts = [artist.song_count for artist in top_artists]
 
     # 3. TRẢ VỀ CONTEXT CHO UNFOLD
     context.update({
-        # --- PHẦN THẺ KPI (Hàng trên cùng) ---
         "kpi": [
             {
                 "title": "Tổng bài hát",
                 "metric": total_songs,
                 "footer": "Bài hát trong kho",
-                "color": "primary",  # Màu xanh
+                "color": "primary",
             },
             {
                 "title": "Tổng lượt nghe",
-                "metric": f"{total_views:,}",  # Format số có dấu phẩy: 1,000
+                "metric": f"{total_views:,}",
                 "footer": "Lượt phát toàn hệ thống",
-                "color": "teal",  # Màu xanh ngọc
+                "color": "teal",
             },
             {
                 "title": "Ca sĩ & Album",
@@ -53,21 +55,19 @@ def dashboard_callback(request, context):
                 "title": "Người dùng mới",
                 "metric": new_users,
                 "footer": "Trong 30 ngày qua",
-                "color": "rose",  # Màu hồng
+                "color": "rose",
             },
         ],
 
-        # --- PHẦN BIỂU ĐỒ (Chart.js) ---
-        # Unfold hỗ trợ sẵn Chart.js, ta chỉ cần truyền config JSON
         "chart": {
-            "type": "bar",  # Loại biểu đồ: bar, line, pie, doughnut
+            "type": "bar",
             "data": {
                 "labels": artist_names,
                 "datasets": [
                     {
                         "label": "Số lượng bài hát",
                         "data": artist_song_counts,
-                        "backgroundColor": "rgba(59, 130, 246, 0.5)",  # Màu cột
+                        "backgroundColor": "rgba(59, 130, 246, 0.5)",
                         "borderColor": "rgb(59, 130, 246)",
                         "borderWidth": 1,
                     }
