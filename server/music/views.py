@@ -4,6 +4,8 @@ from django.http import JsonResponse, FileResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from .models import Song
+from .models import Album
+from django.views.decorators.csrf import csrf_exempt
 
 def stream_song(request, pk):
 
@@ -31,8 +33,8 @@ def stream_song(request, pk):
 class LocalMusicListView(View):
     def get(self, request):
         # Lấy tất cả bài hát, sắp xếp mới nhất
-        # songs = Song.objects.all().order_by('-title')
-        songs = Song.objects.all()
+        songs = Song.objects.all().order_by('-views')
+        # songs = Song.objects.all()
 
         data = []
         for song in songs:
@@ -61,3 +63,22 @@ class LocalMusicListView(View):
 
         # safe=False cho phép trả về List JSON thay vì Dict
         return JsonResponse(data, safe=False)
+
+# Tính View
+@csrf_exempt
+def increment_view(request, pk):
+    if request.method == 'POST':
+        try:
+            song = Song.objects.get(pk=pk)
+            song.views += 1
+
+            song.save()
+
+            return JsonResponse({'status': 'success', 'views': song.views})
+        except Song.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Song not found'}, status=404)
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+
+
+

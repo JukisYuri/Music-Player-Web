@@ -34,7 +34,11 @@ def voice_command_view(request):
                 temp_audio_path,
                 fp16=is_cuda,
                 language='vi',
-                initial_prompt="Tìm bài hát, mở nhạc, Sơn Tùng MTP, Đen Vâu, nhạc trẻ"
+                initial_prompt="Tìm bài hát, Sơn Tùng MTP, Đen Vâu, nhạc trẻ, Hẹn lần sau, nhạc",
+                beam_size=2,
+                best_of=2,
+                temperature=0.0,
+                condition_on_previous_text = False
             )
             text_result = result['text'].strip()
 

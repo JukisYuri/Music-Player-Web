@@ -31,7 +31,7 @@ class Song(models.Model):
     album = models.ForeignKey(Album, on_delete=models.SET_NULL, null=True, blank=True, related_name='songs')
 
     audio_file = models.FileField(upload_to='songs/')
-    cover_image = models.ImageField(upload_to='songs/covers/', blank=True, null=True)
+    cover_image = models.ImageField(upload_to='image/', blank=True, null=True)
     duration = models.IntegerField(help_text="Thời lượng tính bằng giây", default=0)
 
     views = models.IntegerField(default=0)
