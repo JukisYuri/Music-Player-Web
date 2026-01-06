@@ -1,7 +1,7 @@
 import { KeyRound, RotateCcwKey, AtSign, ShieldCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-export function ForgotPasswordInput({ step = 'form', newPassword, confirmNewPassword, setNewPassword, setConfirmNewPassword, isMatchWithoutLength }) {
+export function ForgotPasswordInput({ step = 'form', email, setEmail, newPassword, confirmNewPassword, setNewPassword, setConfirmNewPassword, isMatchWithoutLength, otp, setOtp }) {
     const isOtpStep = step === 'otp'
     const { t } = useTranslation();
 
@@ -11,6 +11,7 @@ export function ForgotPasswordInput({ step = 'form', newPassword, confirmNewPass
         // Chỉ cho phép nhập số
         const numericValue = value.replace(/[^0-9]/g, '');
         e.target.value = numericValue;
+        setOtp(numericValue);
     }
 
     return (
@@ -21,6 +22,8 @@ export function ForgotPasswordInput({ step = 'form', newPassword, confirmNewPass
                     ${isOtpStep ? 'text-green-200 drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]' : 'text-neutral-300'}`}><AtSign  size={16} />Email</label>
                 <input 
                     type="text"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     readOnly={isOtpStep}
                     tabIndex={isOtpStep ? -1 : 0}
                     className={`w-full bg-neutral-800/50 border rounded-[5px] py-3.5 pl-2 pr-12 text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-1 transition-all duration-500

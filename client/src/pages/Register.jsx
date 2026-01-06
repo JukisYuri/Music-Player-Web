@@ -21,7 +21,10 @@ export function Register() {
     const [timeLeft, setTimeLeft] = useState(0); 
     const [isActive, setIsActive] = useState(false);
 
-    const isMatch = password === confirmPassword && password.length > 0
+    // Thêm trạng thái đồng ý điều khoản
+    const [agreeTerms, setAgreeTerms] = useState(false);
+
+    const isMatch = password === confirmPassword && password.length > 0 && agreeTerms
     const isMatchWithoutLength = password === confirmPassword
 
     useEffect(() => {
@@ -38,9 +41,16 @@ export function Register() {
         return () => clearInterval(interval);
         }, [isActive, timeLeft]);
 
-    const handleResendOtp = () => {
-        setTimeLeft(60);
-        setIsActive(true);
+    const handleResendOtp = async () => {
+        try {
+            await axios.post('http://localhost:8000/api/resend-otp/', { email: email, });
+            setTimeLeft(60);
+            setIsActive(true);
+            } catch (error) {
+                console.error("Lỗi khi gửi lại OTP:", error);
+                const msg = error.response?.data?.message || "Có lỗi xảy ra khi gửi lại OTP";
+                alert(msg);
+            }
     }
 
     const handleFormSubmit = async (e) => { // Thêm async
@@ -76,7 +86,7 @@ export function Register() {
             }
         } catch (error) {
             console.error(error);
-            alert(error.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại");
+            alert(error.response?.data?.message || "Email sai định dạng hoặc đã có người sử dụng!");
         }
     }
 
@@ -120,7 +130,9 @@ export function Register() {
                     </div>
                     <div className={`flex items-center justify-between text-xs text-neutral-400 mx-8 transition-all duration-500 ${step === 'otp' ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100 h-auto'}`}>
                         <label className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
-                            <input type="checkbox" className="w-3.5 h-3.5 rounded bg-neutral-800 border-neutral-700 checked:bg-green-500 checked:border-green-500 focus:ring-0 focus:ring-offset-0 accent-green-500" />
+                            <input type="checkbox" className="w-3.5 h-3.5 rounded bg-neutral-800 border-neutral-700 checked:bg-green-500 checked:border-green-500 focus:ring-0 focus:ring-offset-0 accent-green-500" 
+                                checked={agreeTerms}
+                                onChange={(e) => setAgreeTerms(e.target.checked)}/>
                             {t('register.terms_agree')}
                         </label>
                     </div>

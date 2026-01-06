@@ -122,7 +122,7 @@ export function OnBoarding() {
                                 <input 
                                     type="text"
                                     value={username}
-                                    maxLength={10}
+                                    maxLength={12}
                                     minLength={4}
                                     onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))}
                                     className="w-full bg-neutral-800/50 border border-white/5 rounded-xl py-3.5 pl-11 pr-12 text-emerald-300 placeholder-neutral-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all"

@@ -136,7 +136,9 @@ class GoogleLoginView(APIView):
             }
         })
 
-# --- API 1: REGISTER ---
+# ==========================================
+
+# --- Register ----
 class RegisterView(APIView):
     def post(self, request):
         # 1. Validate & Tạo User (Serializer làm việc này)
@@ -151,19 +153,32 @@ class RegisterView(APIView):
             user.otp_created_at = timezone.now()
             user.save()
             
-            # 3. Gửi Email (Cấu hình SMTP trong settings.py)
-            send_mail(
-                'Mã xác thực đăng ký',
-                f'Mã OTP của bạn là: {otp}',
-                'admin@musicapp.com',
-                [user.email],
-                fail_silently=False,
-            )
-            
             return Response({"message": "OTP đã gửi!"}, status=201)
         return Response(serializer.errors, status=400)
 
-# --- API 2: VERIFY OTP ---
+# --- Resend OTP for Register ----
+class ResendOTPView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({"message": "Email là bắt buộc"}, status=400)
+        try:
+            user = User.objects.get(email=email)
+            # 1. Sinh OTP mới
+            if user.is_active:
+                return Response({"message": "Tài khoản đã được kích hoạt"}, status=400)
+            
+            otp = str(random.randint(100000, 999999))
+            print("Mã OTP mới (Resend):", otp)  # DEBUG
+            user.otp_code = otp
+            user.otp_created_at = timezone.now()
+            user.save()
+            
+            return Response({"message": "OTP mới đã gửi!"}, status=200)
+        except User.DoesNotExist:
+            return Response({"message": "Người dùng không tồn tại"}, status=404)
+             
+# -- Verify OTP ----
 class VerifyOTPView(APIView):
     def post(self, request):
         email = request.data.get('email')
@@ -176,8 +191,8 @@ class VerifyOTPView(APIView):
             if user.otp_code != otp_input:
                 return Response({"message": "Sai mã OTP"}, status=400)
             
-            # 2. Kiểm tra hết hạn (ví dụ 5 phút)
-            if timezone.now() > user.otp_created_at + timedelta(minutes=5):
+            # 2. Kiểm tra hết hạn
+            if timezone.now() > user.otp_created_at + timedelta(minutes=1):
                  return Response({"message": "Mã OTP đã hết hạn"}, status=400)
 
             # 3. Kích hoạt User & Xóa OTP
@@ -196,9 +211,69 @@ class VerifyOTPView(APIView):
             }, status=200)
             
         except User.DoesNotExist:
-            return Response({"message": "User không tồn tại"}, status=404)
+            return Response({"message": "Người dùng không tồn tại"}, status=404)
+        
+# --- Forgot Password  ----
+class ForgotPasswordView(APIView):
+    # Quan trọng: Cho phép ai cũng gọi được (vì quên mật khẩu thì chưa login được)
+    permission_classes = []
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({"message": "Email là bắt buộc"}, status=400)
+        try:
+            user = User.objects.get(email=email)
+            if not user.has_usable_password():
+                return Response({"message": "Tài khoản này đăng nhập bằng Google, không thể đặt lại mật khẩu."}, status=400)
+            # 1. Sinh OTP
+            otp = str(random.randint(100000, 999999))
+            print("Mã OTP (Forgot Password):", otp)  # DEBUG
+            user.otp_code = otp
+            user.otp_created_at = timezone.now()
+            user.save()
+            
+            return Response({"message": "OTP đã gửi!"}, status=200)
+        except User.DoesNotExist:
+            return Response({"message": "Người dùng không tồn tại"}, status=404)
+        except Exception as e:
+            return Response({"message": f"Lỗi xảy ra: {str(e)}"}, status=500)
 
-# 3. (Onboarding Submit)
+# --- Reset Password and Verify OTP ----
+class ResetPasswordView(APIView):
+    permission_classes = [] 
+
+    def post(self, request):
+        # Lấy đủ 3 dữ liệu frontend gửi lên
+        email = request.data.get('email')
+        otp_input = request.data.get('otp')
+        new_password = request.data.get('password')
+
+        if not email or not otp_input or not new_password:
+             return Response({"message": "Thiếu thông tin gửi lên"}, status=400)
+
+        try:
+            user = User.objects.get(email=email)
+            # 1. Kiểm tra OTP có khớp không?
+            if user.otp_code != otp_input:
+                 return Response({"message": "Mã OTP không đúng"}, status=400)
+            
+            # 2. Kiểm tra OTP có hết hạn không? (ví dụ 5 phút)
+            if timezone.now() > user.otp_created_at + timedelta(minutes=5):
+                 return Response({"message": "Mã OTP đã hết hạn, vui lòng lấy lại"}, status=400)
+
+            # 3. Đổi mật khẩu
+            # Hàm set_password sẽ tự động mã hóa (Hash) mật khẩu mới
+            user.set_password(new_password)
+            
+            # 4. Dọn dẹp OTP sau khi dùng xong
+            user.otp_code = None
+            user.save()
+
+            return Response({"message": "Đổi mật khẩu thành công! Hãy đăng nhập lại."}, status=200)
+        except User.DoesNotExist:
+             return Response({"message": "Người dùng không tồn tại"}, status=404)
+
+# Onboarding Submit
 class UpdateProfileView(generics.UpdateAPIView):
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated]

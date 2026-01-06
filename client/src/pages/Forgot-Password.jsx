@@ -5,19 +5,22 @@ import { AuthLayout } from '../components/auth_layout.jsx';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export function ForgotPassword() {
         const navigate = useNavigate();
         const { t } = useTranslation();
         const [step, setStep] = useState('form') // 'form' hoặc 'otp'
-    
+
+        const [email, setEmail] = useState("");
         // Kiểm tra trực tiếp password và confirmPassword
         const [newPassword, setNewPassword] = useState("")
         const [confirmNewPassword, setConfirmNewPassword] = useState("")
+        const [otp, setOtp] = useState("");
         const [timeLeft, setTimeLeft] = useState(0); 
         const [isActive, setIsActive] = useState(false);
 
-        const isMatch = newPassword === confirmNewPassword && newPassword.length > 0
+        const isMatch = newPassword === confirmNewPassword && newPassword.length > 0 && agreeTerms
         const isMatchWithoutLength = newPassword === confirmNewPassword
 
         useEffect(() => {
@@ -34,23 +37,42 @@ export function ForgotPassword() {
             return () => clearInterval(interval);
           }, [isActive, timeLeft]);
 
-          const handleFormSubmit = (e) => {
+          const handleFormSubmit = async (e) => { // Thêm async
             e.preventDefault();
+            try {
             if (step === 'form') {
+                await axios.post('http://localhost:8000/api/forgot-password/', { 
+                    email: email, 
+                });
                 console.log("Đã gửi mã OTP");
                 setStep('otp');
                 setTimeLeft(60); 
                 setIsActive(true);
             } else {
+                await axios.post('http://localhost:8000/api/reset-password/', {
+                    email: email,
+                    password: newPassword,
+                    otp: otp,
+                });
                 alert("Đổi mật khẩu thành công!");
                 navigate('/login');
             }
+        } catch (error) {
+            console.error("Lỗi trong quá trình xử lý:", error);
+            const msg = error.response?.data?.message || "Có lỗi xảy ra";
+            alert(msg);
         }
+    }
 
-        const handleResendOtp = () => {
-            console.log("Resending OTP...");
+        const handleResendOtp = async () => {
+            try {
+            await axios.post('http://localhost:8000/api/forgot-password/', { email: email, });
             setTimeLeft(60);
             setIsActive(true);
+            } catch (error) {
+                console.error("Lỗi khi gửi lại OTP:", error);
+                alert(error.response?.data?.message || "Đã có lỗi xảy ra, vui lòng thử lại");
+            }
         }
 
     return (
@@ -66,11 +88,15 @@ export function ForgotPassword() {
                     <div className='flex flex-col gap-3 mt-4'>
                         <ForgotPasswordInput 
                         step={step}
+                        email={email}
+                        setEmail={setEmail}
                         newPassword={newPassword}
                         confirmNewPassword={confirmNewPassword}
                         setNewPassword={setNewPassword}
                         setConfirmNewPassword={setConfirmNewPassword}
                         isMatchWithoutLength={isMatchWithoutLength}
+                        otp={otp}
+                        setOtp={setOtp}
                         />
                     </div>
                     {step === 'otp' && (
