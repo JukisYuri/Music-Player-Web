@@ -14,7 +14,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.parsers import MultiPartParser, FormParser
-from .serializers import UserSerializer, UserUpdateSerializer, RegisterSerializer, VerifyEmailSerializer
+from .serializers import UserSerializer, UserUpdateSerializer, RegisterSerializer
 import requests
 import uuid
 import random
@@ -152,6 +152,14 @@ class RegisterView(APIView):
             user.otp_code = otp
             user.otp_created_at = timezone.now()
             user.save()
+
+            send_mail(
+                'Mã xác thực đăng ký',
+                f'Mã OTP của bạn là: {otp}',
+                settings.EMAIL_HOST_USER,
+                [user.email],
+                fail_silently=False,
+            )
             
             return Response({"message": "OTP đã gửi!"}, status=201)
         return Response(serializer.errors, status=400)
@@ -173,6 +181,14 @@ class ResendOTPView(APIView):
             user.otp_code = otp
             user.otp_created_at = timezone.now()
             user.save()
+
+            send_mail(
+                'Mã xác thực gửi lại',
+                f'Mã OTP của bạn là: {otp}',
+                settings.EMAIL_HOST_USER,
+                [user.email],
+                fail_silently=False,
+            )
             
             return Response({"message": "OTP mới đã gửi!"}, status=200)
         except User.DoesNotExist:
@@ -231,6 +247,14 @@ class ForgotPasswordView(APIView):
             user.otp_code = otp
             user.otp_created_at = timezone.now()
             user.save()
+
+            send_mail(
+                'Mã xác thực quên mật khẩu',
+                f'Mã OTP của bạn là: {otp}',
+                settings.EMAIL_HOST_USER,
+                [user.email],
+                fail_silently=False,
+            )
             
             return Response({"message": "OTP đã gửi!"}, status=200)
         except User.DoesNotExist:

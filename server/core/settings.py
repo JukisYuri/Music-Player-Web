@@ -265,4 +265,15 @@ UNFOLD = {
     },
 }
 
+# Cấu hình gửi mail qua SMTP Google
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True  # Bảo mật đường truyền
+EMAIL_HOST_USER = 'yurichangirl752@gmail.com'
+EMAIL_HOST_PASSWORD = 'cieg xskp pojn vhzp'
+
+# Email mặc định gửi đi (để tránh bị spam)
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
 AUTH_USER_MODEL = 'music.User'
