@@ -20,7 +20,7 @@ export function ForgotPassword() {
         const [timeLeft, setTimeLeft] = useState(0); 
         const [isActive, setIsActive] = useState(false);
 
-        const isMatch = newPassword === confirmNewPassword && newPassword.length > 0 && agreeTerms
+        const isMatch = newPassword === confirmNewPassword && newPassword.length > 0
         const isMatchWithoutLength = newPassword === confirmNewPassword
 
         useEffect(() => {
