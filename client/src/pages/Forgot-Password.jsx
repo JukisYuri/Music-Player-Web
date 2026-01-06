@@ -19,6 +19,7 @@ export function ForgotPassword() {
         const [otp, setOtp] = useState("");
         const [timeLeft, setTimeLeft] = useState(0); 
         const [isActive, setIsActive] = useState(false);
+        const [isLoading, setIsLoading] = useState(false);
 
         const isMatch = newPassword === confirmNewPassword && newPassword.length > 0
         const isMatchWithoutLength = newPassword === confirmNewPassword
@@ -66,12 +67,16 @@ export function ForgotPassword() {
 
         const handleResendOtp = async () => {
             try {
+            if (isLoading) return; // Ngăn chặn nhiều lần nhấn
+            setIsLoading(true);
             await axios.post('http://localhost:8000/api/forgot-password/', { email: email, });
             setTimeLeft(60);
             setIsActive(true);
             } catch (error) {
                 console.error("Lỗi khi gửi lại OTP:", error);
                 alert(error.response?.data?.message || "Đã có lỗi xảy ra, vui lòng thử lại");
+            } finally {
+                setIsLoading(false);
             }
         }
 
@@ -104,14 +109,14 @@ export function ForgotPassword() {
                             <button
                                 type="button"
                                 onClick={handleResendOtp}
-                                disabled={isActive}
+                                disabled={isActive || isLoading}
                                 className={`font-medium transition-colors ${
-                                    isActive 
+                                    isActive || isLoading 
                                     ? 'text-neutral-500 cursor-not-allowed' 
                                     : 'text-green-500 hover:text-green-400 hover:underline cursor-pointer'
                                 }`}
                             >
-                                {isActive ? t('forgot_password.resend_otp_wait', { seconds: timeLeft }) : t('forgot_password.resend_otp')}
+                                {isLoading ? "Đang gửi..." : isActive ? t('forgot_password.resend_otp_wait', { seconds: timeLeft }) : t('forgot_password.resend_otp')}
                             </button>
                         </div>
                     )}

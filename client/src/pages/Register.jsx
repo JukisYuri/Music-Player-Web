@@ -20,6 +20,7 @@ export function Register() {
     const [otp, setOtp] = useState("");
     const [timeLeft, setTimeLeft] = useState(0); 
     const [isActive, setIsActive] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Thêm trạng thái đồng ý điều khoản
     const [agreeTerms, setAgreeTerms] = useState(false);
@@ -43,6 +44,8 @@ export function Register() {
 
     const handleResendOtp = async () => {
         try {
+            if (isLoading) return; // Ngăn chặn nhiều lần nhấn
+            setIsLoading(true);
             await axios.post('http://localhost:8000/api/resend-otp/', { email: email, });
             setTimeLeft(60);
             setIsActive(true);
@@ -50,6 +53,8 @@ export function Register() {
                 console.error("Lỗi khi gửi lại OTP:", error);
                 const msg = error.response?.data?.message || "Có lỗi xảy ra khi gửi lại OTP";
                 alert(msg);
+            } finally {
+                setIsLoading(false);
             }
     }
 
@@ -141,14 +146,17 @@ export function Register() {
                             <button
                                 type="button"
                                 onClick={handleResendOtp}
-                                disabled={isActive}
+                                disabled={isActive || isLoading}
                                 className={`font-medium transition-colors ${
-                                    isActive 
+                                    isActive || isLoading
                                     ? 'text-neutral-500 cursor-not-allowed' 
                                     : 'text-green-500 hover:text-green-400 hover:underline cursor-pointer'
                                 }`}
                             >
-                                {isActive ? t('register.resend_otp_wait', { seconds: timeLeft }) : t('register.resend_otp')}
+                                {isLoading ? "Đang gửi..." : isActive 
+                                                                ? t('register.resend_otp_wait', { seconds: timeLeft }) 
+                                                                : t('register.resend_otp')
+                                }
                             </button>
                         </div>
                     )}
