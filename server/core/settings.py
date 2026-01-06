@@ -193,7 +193,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/data/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'data')
-
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # --- CẤU HÌNH GIAO DIỆN UNFOLD ---
 UNFOLD = {
@@ -257,10 +257,23 @@ UNFOLD = {
                         "title": _("Tài khoản"),
                         "icon": "group",
                         # SỬA Ở ĐÂY
-                        "link": reverse_lazy("admin:auth_user_changelist"),
+                        "link": reverse_lazy("admin:music_user_changelist"),
                     },
                 ],
             },
         ],
     },
 }
+
+# Cấu hình gửi mail qua SMTP Google
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True  # Bảo mật đường truyền
+EMAIL_HOST_USER = 'yurichangirl752@gmail.com'
+EMAIL_HOST_PASSWORD = 'cieg xskp pojn vhzp'
+
+# Email mặc định gửi đi (để tránh bị spam)
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+AUTH_USER_MODEL = 'music.User'

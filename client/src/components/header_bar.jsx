@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react';
+import { useAuth } from '../context/auth_context.jsx'; // Đảm bảo đường dẫn đúng
+import { LogoutConfirmModal } from './logout_confirm_modal.jsx';
 import {
     Home,
     Search,
     ChevronDown,
-    User,
     Music,
     Settings,
     LogOut,
@@ -16,22 +17,30 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-export function HeaderBar({ onLogoutClick, username = "Oleny" }) {
-    const userName = username;
+export function HeaderBar({ onLogoutClick }) {
+    // Lấy user, loading và hàm logout từ "Kho chung"
+    const { user, loading, logout } = useAuth();
     const { t } = useTranslation();
     const navigate = useNavigate();
 
     // --- State ---
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingVoice, setIsLoadingVoice] = useState(false);
     const [searchText, setSearchText] = useState('');
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
 
     // --- Refs ---
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
-
     const searchInputRef = useRef(null);
+
+    // --- Helper xử lý link ảnh ---
+    const getAvatarUrl = (path) => {
+        if (!path) return null; // Trả về null để hiện icon mặc định
+        if (path.startsWith('http')) return path; // Link Google hoặc link tuyệt đối
+        return `http://localhost:8000${path}`; // Link local từ Django
+    };
 
     const dropdownItems = [
         { name: t('header_bar.account'), href: '/profile', icon: UserCircle },
@@ -43,10 +52,20 @@ export function HeaderBar({ onLogoutClick, username = "Oleny" }) {
         setIsMenuOpen(!isMenuOpen);
     };
 
+    // Sự kiện chạy khi bấm "Xác nhận" trên Modal
     const handleLogoutClick = (e) => {
         e.preventDefault();
-        onLogoutClick();
-        setIsMenuOpen(false);
+        setIsMenuOpen(false); // Đóng menu dropdown
+        setShowLogoutModal(true); // Mở modal xác nhận
+    };
+
+    // Xử lý khi xác nhận đăng xuất
+    const handleConfirmLogout = () => {
+        logout(); // Xóa token
+        setShowLogoutModal(false);
+        if (onLogoutClick) onLogoutClick();
+        // Refresh trang về Login
+        window.location.href = '/login';
     };
 
     // --- LOGIC GHI ÂM ---
@@ -56,7 +75,7 @@ export function HeaderBar({ onLogoutClick, username = "Oleny" }) {
                 mediaRecorderRef.current.stop();
             }
             setIsRecording(false);
-            setIsLoading(true);
+            setIsLoadingVoice(true);
         } else {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -90,7 +109,7 @@ export function HeaderBar({ onLogoutClick, username = "Oleny" }) {
                 body: formData,
             });
             const data = await response.json();
-            setIsLoading(false);
+            setIsLoadingVoice(false);
 
             if (data.status === 'success') {
                 processVoiceCommand(data);
@@ -100,21 +119,17 @@ export function HeaderBar({ onLogoutClick, username = "Oleny" }) {
             }
         } catch (error) {
             console.error("Server Error:", error);
-            setIsLoading(false);
+            setIsLoadingVoice(false);
             alert("Lỗi kết nối tới Server.");
         }
     };
 
-    // --- SỬA ĐỔI QUAN TRỌNG Ở ĐÂY ---
     const processVoiceCommand = (data) => {
         const finalContent = data.keyword || data.text;
-
         setSearchText(finalContent);
-
         if (searchInputRef.current) {
             searchInputRef.current.focus();
         }
-
     };
 
     const handleKeyDown = (e) => {
@@ -124,6 +139,7 @@ export function HeaderBar({ onLogoutClick, username = "Oleny" }) {
     };
 
     return (
+        <>
         <header className="fixed top-0 left-0 w-full h-16 bg-neutral-900/95 backdrop-blur-md border-b border-neutral-800 z-40 shadow-lg">
             <div className="h-full mx-auto px-6 flex items-center justify-between">
 
@@ -143,9 +159,9 @@ export function HeaderBar({ onLogoutClick, username = "Oleny" }) {
                         <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 group-focus-within:text-green-500 transition-colors" />
 
                         <input
-                            ref={searchInputRef} // Gắn ref vào đây
+                            ref={searchInputRef}
                             type="text"
-                            placeholder={isRecording ? "Đang nghe..." : t('header_bar.search_placeholder')}
+                            placeholder={isRecording ? "Đang nghe..." : t('header_bar.search_placeholder', 'Tìm kiếm...')}
                             value={searchText}
                             onChange={(e) => setSearchText(e.target.value)}
                             onKeyDown={handleKeyDown}
@@ -154,11 +170,10 @@ export function HeaderBar({ onLogoutClick, username = "Oleny" }) {
 
                         <button
                             onClick={handleToggleRecording}
-                            disabled={isLoading}
+                            disabled={isLoadingVoice}
                             className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1.5 rounded-full hover:bg-neutral-700 transition-colors text-neutral-400 hover:text-green-400"
-                            title="Nhập bằng giọng nói"
                         >
-                            {isLoading ? (
+                            {isLoadingVoice ? (
                                 <Loader2 size={18} className="animate-spin text-green-500" />
                             ) : isRecording ? (
                                 <Square size={18} className="text-red-500 fill-current animate-pulse" />
@@ -173,42 +188,85 @@ export function HeaderBar({ onLogoutClick, username = "Oleny" }) {
                     </Link>
                 </div>
 
-                <div className="relative">
-                    <button
-                        onClick={handleMenuToggle}
-                        className="flex items-center gap-2 p-1 rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors focus:outline-none"
-                    >
-                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white">
-                            <User size={18} />
+                {/* --- 3. USER AREA --- */}
+                <div className="relative min-w-[150px] flex justify-end">
+                    {/* Trường hợp đang load dữ liệu user */}
+                    {loading ? (
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-800/50">
+                            <Loader2 size={18} className="animate-spin text-green-500" />
+                            <span className="text-sm text-neutral-500">Loading...</span>
                         </div>
-                        <span
-                            className="text-sm font-medium mr-1 text-green-400 hidden md:inline"
-                            style={{ textShadow: '0 0 5px rgba(74, 222, 128, 0.7), 0 0 10px rgba(74, 222, 128, 0.3)' }}
-                        >
-                            {userName}
-                        </span>
-                        <ChevronDown size={16} className={`text-neutral-400 mr-2 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
-                    </button>
+                    ) : user ? (
+                        /* Trường hợp đã đăng nhập */
+                        <>
+                            <button
+                                onClick={handleMenuToggle}
+                                className="flex items-center gap-2 p-1 pr-3 rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors focus:outline-none border border-transparent hover:border-white/10">
+                                {/* Avatar */}
+                                <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-neutral-700 shrink-0">
+                                    {user.profile_image_url ? (
+                                        <img 
+                                            src={getAvatarUrl(user.profile_image_url)} 
+                                            alt="User Avatar" 
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-green-500 flex items-center justify-center text-white font-bold">
+                                            {/* Lấy chữ cái đầu của tên */}
+                                            {(user.display_name || "U").charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                {/* Tên hiển thị */}
+                                <span className="text-sm font-medium text-green-400 hidden md:inline-block max-w-[100px] truncate">
+                                    {user.display_name}
+                                </span>
+                                
+                                <ChevronDown size={16} className={`text-neutral-400 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
+                            </button>
 
-                    {isMenuOpen && (
-                        <div className="absolute right-0 mt-2 w-48 bg-neutral-800 rounded-lg shadow-xl py-1 ring-1 ring-black ring-opacity-5 z-50">
-                            {dropdownItems.map((item) => (
-                                <Link
-                                    key={item.name}
-                                    to={item.href}
-                                    onClick={item.isLogout ? handleLogoutClick : () => setIsMenuOpen(false)}
-                                    className={`flex items-center px-4 py-2 text-sm transition-colors ${
-                                        item.isLogout ? 'text-red-400 hover:bg-red-900/40' : 'text-neutral-300 hover:bg-neutral-700'
-                                    }`}
-                                >
-                                    <item.icon size={18} className="mr-3" />
-                                    {item.name}
-                                </Link>
-                            ))}
+                            {/* Dropdown Menu */}
+                            {isMenuOpen && (
+                                <div className="absolute top-full right-0 mt-2 w-48 bg-neutral-800 rounded-lg shadow-xl py-1 ring-1 ring-black ring-opacity-5 z-50 overflow-hidden">
+                                    {dropdownItems.map((item) => (
+                                        <Link
+                                            key={item.name}
+                                            to={item.href}
+                                            // Nếu là nút Logout thì gọi hàm logout, ngược lại chỉ đóng menu
+                                            onClick={item.isLogout ? handleLogoutClick : () => setIsMenuOpen(false)}
+                                            className={`flex items-center px-4 py-2.5 text-sm transition-colors ${
+                                                item.isLogout 
+                                                ? 'text-red-400 hover:bg-red-900/20 hover:text-red-300' 
+                                                : 'text-neutral-300 hover:bg-neutral-700 hover:text-white'
+                                            }`}>
+                                            <item.icon size={18} className="mr-3 opacity-80" />
+                                            {item.name}
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        /* Trường hợp chưa đăng nhập */
+                        <div className="flex items-center gap-3">
+                            <Link to="/register" className="text-neutral-400 hover:text-white text-sm font-medium transition-colors">
+                                Đăng ký
+                            </Link>
+                            <Link to="/login" className="bg-white text-black px-4 py-1.5 rounded-full text-sm font-bold hover:bg-neutral-200 transition-colors">
+                                Đăng nhập
+                            </Link>
                         </div>
                     )}
                 </div>
             </div>
         </header>
+            {/* 5. Render Modal xác nhận ở đây */}
+            <LogoutConfirmModal 
+            isOpen={showLogoutModal} 
+            onClose={() => setShowLogoutModal(false)} 
+            onConfirm={handleConfirmLogout} 
+        />
+    </>
     );
 }
