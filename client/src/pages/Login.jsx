@@ -15,11 +15,25 @@ export function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
 
-    const handleLoginSubmit = (response) => {
-        const { access, user } = response.data;
-        login(access, user); // Lưu token vào Context
-        console.log("Login success!", response.data);
-        navigate('/index');
+    const handleLoginSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await axios.post('http://localhost:8000/api/login/', {
+                username: email, // SimpleJWT mặc định đòi key là 'username'
+                password: password
+            });
+            // Lấy token từ kết quả trả về
+            const { access } = res.data;
+            
+            // Lưu vào context và chuyển trang
+            login(access); 
+            console.log("Login success!");
+            navigate('/index');
+
+        } catch (error) {
+            console.error("Login failed", error);
+            alert("Đăng nhập thất bại! Vui lòng kiểm tra lại Email hoặc Mật khẩu.");
+        }
     };
     
     const handleGoogleLogin = useGoogleLogin({
