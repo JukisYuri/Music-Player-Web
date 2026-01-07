@@ -60,7 +60,8 @@ export function Register() {
 
     const handleFormSubmit = async (e) => { // Thêm async
         e.preventDefault();
-        
+        if (isLoading) return; // Ngăn chặn nhiều lần nhấn
+        setIsLoading(true);
         try {
             if (step === 'form') {
                 // --- GIAI ĐOẠN 1: GỌI API ĐĂNG KÝ ---
@@ -92,6 +93,8 @@ export function Register() {
         } catch (error) {
             console.error(error);
             alert(error.response?.data?.message || "Email sai định dạng hoặc đã có người sử dụng!");
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -161,10 +164,11 @@ export function Register() {
                         </div>
                     )}
                     <button
-                        disabled={!isMatch}
+                        disabled={!isMatch || isLoading}
                         type="submit"
-                        className={`w-110 bg-green-600 hover:bg-green-700 text-white font-medium py-3.5 rounded-[5px] mt-6 mx-8 transition-colors ${!isMatch ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-                        {step === 'form' ? t('register.submit_register') : t('register.submit_confirm')}
+                        className={`w-110 bg-green-600 hover:bg-green-700 text-white font-medium py-3.5 rounded-[5px] mt-6 mx-8 transition-colors 
+                        ${!isMatch || isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                        {isLoading ? "Đang xử lí" : (step === 'form') ? t('register.submit_register') : t('register.submit_confirm')}
                     </button>
                     <div className="mt-10 mb-4 text-center text-xs text-neutral-400">
                         { step === 'form' ? (

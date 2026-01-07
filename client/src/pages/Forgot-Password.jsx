@@ -40,6 +40,8 @@ export function ForgotPassword() {
 
           const handleFormSubmit = async (e) => { // Thêm async
             e.preventDefault();
+            if (isLoading) return; // Ngăn chặn nhiều lần nhấn
+            setIsLoading(true);
             try {
             if (step === 'form') {
                 await axios.post('http://localhost:8000/api/forgot-password/', { 
@@ -62,6 +64,8 @@ export function ForgotPassword() {
             console.error("Lỗi trong quá trình xử lý:", error);
             const msg = error.response?.data?.message || "Có lỗi xảy ra";
             alert(msg);
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -121,10 +125,11 @@ export function ForgotPassword() {
                         </div>
                     )}
                     <button
-                        disabled={!isMatch}
+                        disabled={!isMatch || isLoading}
                         type="submit"
-                        className={`w-110 bg-green-600 hover:bg-green-700 text-white font-medium py-3.5 rounded-[5px] mt-6 mx-8 transition-colors ${!isMatch ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-                        {step === 'form' ? t('forgot_password.submit_verify') : t('forgot_password.submit_confirm')}
+                        className={`w-110 bg-green-600 hover:bg-green-700 text-white font-medium py-3.5 rounded-[5px] mt-6 mx-8 transition-colors 
+                        ${!isMatch || isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                        {isLoading ? "Đang xử lí" : (step === 'form') ? t('forgot_password.submit_verify') : t('forgot_password.submit_confirm')}
                     </button>
                     <div className="mt-10 mb-4 text-center text-xs text-neutral-400">
                         { step === 'form' ? (
