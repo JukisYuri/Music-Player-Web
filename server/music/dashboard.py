@@ -3,87 +3,46 @@ from django.utils.translation import gettext_lazy as _
 from .models import Song, Album, Artist
 from django.contrib.auth import get_user_model
 import datetime
+import json  # <--- Nhớ import json
 
 User = get_user_model()
 
 
 def dashboard_callback(request, context):
-    # 1. TÍNH TOÁN SỐ LIỆU TỔNG QUAN (KPI)
+    # 1. TÍNH TOÁN KPI (Giữ nguyên)
     total_songs = Song.objects.count()
-    total_albums = Album.objects.count()
-    total_artists = Artist.objects.count()
+    total_views = Song.objects.aggregate(Sum('views'))['views__sum'] or 0
+    total_comments = Song.objects.aggregate(Count('comments'))['comments__count']
 
-    # Tính tổng lượt nghe
-    total_views_data = Song.objects.aggregate(Sum('views'))
-    total_views = total_views_data['views__sum'] or 0
-
-    # Tính user mới trong 30 ngày qua
     last_month = datetime.date.today() - datetime.timedelta(days=30)
-
-    # Giờ đây User.objects sẽ hoạt động đúng vì nó trỏ vào authentication.User
     new_users = User.objects.filter(date_joined__gte=last_month).count()
 
-    # 2. CHUẨN BỊ DỮ LIỆU BIỂU ĐỒ
-    # Dùng field song_count có sẵn trong model Artist để sort
-    top_artists = Artist.objects.all().order_by('-song_count')[:5]
+    # 2. LẤY DỮ LIỆU TOP BÀI HÁT
+    top_views_songs = Song.objects.order_by('-views')[:10]
 
-    artist_names = [artist.name for artist in top_artists]
-    artist_song_counts = [artist.song_count for artist in top_artists]
+    top_comments_songs = Song.objects.annotate(cmt_count=Count('comments')).order_by('-cmt_count')[:10]
 
-    # 3. TRẢ VỀ CONTEXT CHO UNFOLD
+    # 3. CHUẨN BỊ CONTEXT
     context.update({
+        # KPI Cards
         "kpi": [
-            {
-                "title": "Tổng bài hát",
-                "metric": total_songs,
-                "footer": "Bài hát trong kho",
-                "color": "primary",
-            },
-            {
-                "title": "Tổng lượt nghe",
-                "metric": f"{total_views:,}",
-                "footer": "Lượt phát toàn hệ thống",
-                "color": "teal",
-            },
-            {
-                "title": "Ca sĩ & Album",
-                "metric": f"{total_artists} / {total_albums}",
-                "footer": "Nghệ sĩ / Album",
-                "color": "cyan",
-            },
-            {
-                "title": "Người dùng mới",
-                "metric": new_users,
-                "footer": "Trong 30 ngày qua",
-                "color": "rose",
-            },
+            {"title": "Tổng bài hát", "metric": total_songs, "footer": "Bài hát trong kho", "color": "primary"},
+            {"title": "Tổng lượt nghe", "metric": f"{total_views:,}", "footer": "Toàn hệ thống", "color": "teal"},
+            {"title": "Tổng bình luận", "metric": total_comments, "footer": "Tương tác", "color": "amber"},
+            {"title": "User mới", "metric": new_users, "footer": "30 ngày qua", "color": "rose"},
         ],
 
-        "chart": {
-            "type": "bar",
-            "data": {
-                "labels": artist_names,
-                "datasets": [
-                    {
-                        "label": "Số lượng bài hát",
-                        "data": artist_song_counts,
-                        "backgroundColor": "rgba(59, 130, 246, 0.5)",
-                        "borderColor": "rgb(59, 130, 246)",
-                        "borderWidth": 1,
-                    }
-                ]
-            },
-            "options": {
-                "responsive": True,
-                "plugins": {
-                    "legend": {"position": "top"},
-                    "title": {"display": True, "text": "Top 5 Ca sĩ năng suất nhất"}
-                },
-                "scales": {
-                    "y": {"beginAtZero": True}
-                }
-            }
-        },
+        # Dữ liệu Chart 1: Views (Chuyển thành JSON string)
+        "chart_views_data": json.dumps({
+            "labels": [s.title for s in top_views_songs],
+            "data": [s.views for s in top_views_songs]
+        }),
+
+        # Dữ liệu Chart 2: Comments (Chuyển thành JSON string)
+        "chart_comments_data": json.dumps({
+            "labels": [s.title for s in top_comments_songs],
+            "data": [s.cmt_count for s in top_comments_songs]
+        }),
     })
 
     return context

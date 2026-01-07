@@ -2,16 +2,19 @@ import json
 import os
 import base64
 
+from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.http import JsonResponse, FileResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.conf import settings
+from django.views.generic import TemplateView
+
 from .models import Song
 from authentication.models import User
 from .models import Album, AlbumSong, Comment
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from django.views.decorators.csrf import csrf_exempt
 
 def stream_song(request, pk):
@@ -244,3 +247,29 @@ class CommentSongView(View):
             })
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@method_decorator(staff_member_required, name='dispatch')
+class StatisticsView(TemplateView):
+    template_name = 'admin/statistics.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # 1. Lấy Top 10 bài hát (Views & Comments)
+        top_songs = Song.objects.annotate(
+            comment_count=Count('comments')
+        ).order_by('-views')[:10]
+
+        # 2. Chuẩn bị dữ liệu JSON để vẽ Chart
+        # Cần chuyển thành JSON string để Javascript đọc được
+        chart_data = {
+            "labels": [s.title for s in top_songs],
+            "views": [s.views for s in top_songs],
+            "comments": [s.comment_count for s in top_songs]
+        }
+
+        context['chart_data'] = json.dumps(chart_data)
+        context['title'] = "Thống kê chi tiết"  # Tiêu đề trang Admin
+
+        return context

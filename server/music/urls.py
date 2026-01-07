@@ -1,7 +1,7 @@
 # server/music/urls.py
 from django.urls import path
 from .views import LocalMusicListView, stream_song, increment_view, TopAlbumsView, AlbumDetailView, SongDetailView, \
-    CommentSongView
+    CommentSongView, StatisticsView
 
 urlpatterns = [
     path('local-songs/', LocalMusicListView.as_view(), name='local-songs'),
@@ -11,4 +11,5 @@ urlpatterns = [
     path('album/<int:pk>/', AlbumDetailView.as_view(), name='album-detail'),
     path('song/<int:pk>/', SongDetailView.as_view(), name='song-detail'),
     path('song/<int:pk>/comment/', CommentSongView.as_view(), name='post-comment'),
+    path('admin/statistics/', StatisticsView.as_view(), name='custom-statistics'),
 ]
