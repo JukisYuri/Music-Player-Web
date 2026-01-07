@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Play, Clock, Music, ArrowLeft, Heart, PlusCircle } from 'lucide-react';
 import { HeaderBar } from '../components/header_bar.jsx';
 import { Sidebar } from '../components/sidebar.jsx';
-import { PlayerBar } from '../components/player_bar.jsx';
+import { useMusic } from '../context/MusicContext.jsx';
+import { AddToPlaylistModal } from '../components/playlist_modal.jsx';
 
 // Component Sóng nhạc (Tái sử dụng)
 const PlayingEqualizer = () => (
@@ -21,50 +22,57 @@ const getRandomColor = () => {
 };
 
 export function AlbumDetail() {
-    const { artistName } = useParams();
+    const { id } = useParams();
     const navigate = useNavigate();
-    const decodedArtist = decodeURIComponent(artistName);
+
+    const { playSong, currentSong, isPlaying } = useMusic();
 
     const [albumSongs, setAlbumSongs] = useState([]);
-    const [currentSong, setCurrentSong] = useState({ title: "", artist: "", audioUrl: "", cover: "" });
-    const [albumInfo, setAlbumInfo] = useState({ cover: "", color: getRandomColor() });
 
-    const [isPlaying, setIsPlaying] = useState(false);
+    // 2. State cho Modal Playlist
+    const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+    const [selectedSongToAdd, setSelectedSongToAdd] = useState(null);
+
+    // State lưu thông tin Album
+    const [albumInfo, setAlbumInfo] = useState({
+        title: "Đang tải...",
+        artist: "",
+        cover: "",
+        color: getRandomColor()
+    });
+
     const [likedSongs, setLikedSongs] = useState(new Set());
 
-    // Fetch Album Songs
+    // Fetch Album Detail & Songs theo ID
     useEffect(() => {
-        const fetchAlbumSongs = async () => {
+        const fetchAlbumDetail = async () => {
             try {
-                const res = await fetch(`http://127.0.0.1:8000/api/music/local-songs/`);
+                const res = await fetch(`http://127.0.0.1:8000/api/music/album/${id}/`);
+                if (!res.ok) throw new Error("Không tải được album");
+
                 const data = await res.json();
-                if (Array.isArray(data)) {
-                    const filtered = data.filter(song => song.artist === decodedArtist);
-                    setAlbumSongs(filtered);
-                    if (filtered.length > 0) {
-                        setCurrentSong(filtered[0]);
-                        setAlbumInfo({ cover: filtered[0].cover, color: getRandomColor() });
-                    }
+
+                if (data.songs) setAlbumSongs(data.songs);
+
+                if (data.info) {
+                    setAlbumInfo(prev => ({
+                        ...prev,
+                        title: data.info.title,
+                        artist: data.info.artist,
+                        cover: data.info.cover
+                    }));
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) {
+                console.error(err);
+            }
         };
-        fetchAlbumSongs();
-    }, [decodedArtist]);
 
-    const handlePlaySong = (song) => setCurrentSong(song);
+        if (id) fetchAlbumDetail();
+    }, [id]);
 
-    const handleNext = () => {
-        if (albumSongs.length === 0) return;
-        const idx = albumSongs.findIndex(s => s.title === currentSong.title);
-        const nextIdx = (idx + 1) % albumSongs.length;
-        handlePlaySong(albumSongs[nextIdx]);
-    };
-
-    const handlePrev = () => {
-        if (albumSongs.length === 0) return;
-        const idx = albumSongs.findIndex(s => s.title === currentSong.title);
-        const prevIdx = (idx - 1 + albumSongs.length) % albumSongs.length;
-        handlePlaySong(albumSongs[prevIdx]);
+    const handlePlaySong = (song) => {
+        // Chỉ play bài này, giữ nguyên queue hiện tại (đã sửa ở bước trước)
+        playSong(song);
     };
 
     const toggleLike = (songId) => {
@@ -73,6 +81,19 @@ export function AlbumDetail() {
             newSet.has(songId) ? newSet.delete(songId) : newSet.add(songId);
             return newSet;
         });
+    };
+
+    // 3. Hàm xử lý mở Modal
+    const openAddToPlaylistModal = (e, song) => {
+        e.stopPropagation(); // Ngăn việc click vào hàng (play nhạc)
+        setSelectedSongToAdd(song);
+        setIsPlaylistModalOpen(true);
+    };
+
+    const handlePlaylistAdded = () => {
+        // Xử lý sau khi thêm xong (ví dụ hiện thông báo)
+        setIsPlaylistModalOpen(false);
+        setSelectedSongToAdd(null);
     };
 
     return (
@@ -88,25 +109,30 @@ export function AlbumDetail() {
                     {/* BANNER */}
                     <div className="flex flex-col md:flex-row items-end gap-6 mb-8">
                         <div className={`w-52 h-52 rounded-lg shadow-2xl relative overflow-hidden flex items-center justify-center bg-linear-to-br ${albumInfo.color}`}>
-                            {albumInfo.cover && albumInfo.cover.startsWith("data:") ? <img src={albumInfo.cover} className="w-full h-full object-cover"/> : <Music size={64} className="text-white/50" />}
+                            {albumInfo.cover ? (
+                                <img src={albumInfo.cover} className="w-full h-full object-cover" alt={albumInfo.title}/>
+                            ) : (
+                                <Music size={64} className="text-white/50" />
+                            )}
                         </div>
                         <div className="flex flex-col gap-2 mb-2">
-                            <span className="text-sm font-bold uppercase text-white">Album / Tuyển Tập</span>
-                            <h1 className="text-5xl md:text-7xl font-black text-white">{decodedArtist}</h1>
+                            <span className="text-sm font-bold uppercase text-white">Album</span>
+                            <h1 className="text-5xl md:text-7xl font-black text-white">{albumInfo.title}</h1>
                             <div className="flex items-center gap-2 text-neutral-300 text-sm mt-2">
-                                <span className="font-bold text-white">{decodedArtist}</span>
+                                <span className="font-bold text-white">{albumInfo.artist}</span>
                                 <span>• {albumSongs.length} bài hát</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="mb-8">
-                        <button onClick={() => handlePlaySong(albumSongs[0])} className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center hover:scale-105 hover:bg-green-400 transition-all shadow-lg">
+                        {/* Nút Play to: Có thể sửa thành Play cả album nếu muốn */}
+                        <button onClick={() => albumSongs.length > 0 && handlePlaySong(albumSongs[0])} className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center hover:scale-105 hover:bg-green-400 transition-all shadow-lg">
                             <Play size={28} fill="black" className="text-black ml-1" />
                         </button>
                     </div>
 
-                    {/* LIST SONGS */}
+                    {/* LIST SONGS HEADER */}
                     <div className="grid grid-cols-[50px_4fr_3fr_1fr_100px] gap-4 px-4 py-2 border-b border-neutral-800 text-sm text-neutral-400 font-medium uppercase tracking-wider">
                         <div className="text-center">#</div>
                         <div>Tiêu đề</div>
@@ -115,10 +141,12 @@ export function AlbumDetail() {
                         <div className="text-center">Thao tác</div>
                     </div>
 
+                    {/* LIST SONGS BODY */}
                     <div className="flex flex-col mt-2">
                         {albumSongs.map((song, index) => {
                             const isActive = currentSong.title === song.title;
                             const isLiked = likedSongs.has(song.id);
+
                             return (
                                 <div key={song.id} onClick={() => handlePlaySong(song)} className={`group grid grid-cols-[50px_4fr_3fr_1fr_100px] gap-4 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 items-center ${isActive ? 'bg-white/10 border-l-4 border-green-500' : 'hover:bg-neutral-800/50 border-l-4 border-transparent'}`}>
 
@@ -128,7 +156,11 @@ export function AlbumDetail() {
 
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 bg-neutral-700 rounded overflow-hidden shrink-0 relative">
-                                            {song.cover && song.cover.startsWith("data:") ? <img src={song.cover} className="w-full h-full object-cover"/> : <div className="absolute inset-0 flex items-center justify-center"><Music size={16} className="text-neutral-500"/></div>}
+                                            {song.cover ? (
+                                                <img src={song.cover} className="w-full h-full object-cover" alt={song.title}/>
+                                            ) : (
+                                                <div className="absolute inset-0 flex items-center justify-center"><Music size={16} className="text-neutral-500"/></div>
+                                            )}
                                         </div>
                                         <span className={`font-semibold text-base line-clamp-1 transition-colors ${isActive ? 'text-green-400' : 'text-white'}`}>{song.title}</span>
                                     </div>
@@ -140,7 +172,13 @@ export function AlbumDetail() {
                                         <button onClick={(e) => { e.stopPropagation(); toggleLike(song.id); }} className={`hover:scale-125 transition-transform ${isLiked ? 'text-green-500' : 'text-neutral-400 hover:text-white'}`}>
                                             <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
                                         </button>
-                                        <button onClick={(e) => { e.stopPropagation(); alert("Đã thêm vào playlist!"); }} className="text-neutral-400 hover:text-white hover:scale-125 transition-transform">
+
+                                        {/* 4. Sửa nút Add to Playlist */}
+                                        <button
+                                            onClick={(e) => openAddToPlaylistModal(e, song)}
+                                            className="text-neutral-400 hover:text-white hover:scale-125 transition-transform"
+                                            title="Thêm vào Playlist"
+                                        >
                                             <PlusCircle size={18} />
                                         </button>
                                     </div>
@@ -151,16 +189,12 @@ export function AlbumDetail() {
                 </main>
             </div>
 
-            <PlayerBar
-                currentSong={currentSong.title}
-                artist={currentSong.artist}
-                audioUrl={currentSong.audioUrl}
-                cover={currentSong.cover}
-                onNext={handleNext}
-                onPrev={handlePrev}
-                onPlayingChange={(status) => setIsPlaying(status)}
-                playlist={albumSongs}
-                onPlaySong={handlePlaySong}
+            {/* 5. Render Modal */}
+            <AddToPlaylistModal
+                isOpen={isPlaylistModalOpen}
+                onClose={() => setIsPlaylistModalOpen(false)}
+                song={selectedSongToAdd}
+                onConfirm={handlePlaylistAdded}
             />
         </div>
     );

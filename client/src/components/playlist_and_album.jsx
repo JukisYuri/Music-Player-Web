@@ -1,19 +1,13 @@
 import { Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-export function PlaylistTracks({ albums, onPlayAlbum }) {
-    const navigate = useNavigate();
-
-    const handleAlbumClick = (artistName) => {
-        navigate(`/album/${encodeURIComponent(artistName)}`);
-    };
-
+export function PlaylistTracks({ albums, onPlayAlbum, onAlbumClick }) {
     return (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {albums.map((album) => (
                 <div
                     key={album.id}
-                    onClick={() => handleAlbumClick(album.artist)}
+                    onClick={() => onAlbumClick(album)}
                     className="group relative bg-neutral-800/40 hover:bg-neutral-800 p-4 rounded-xl transition-all duration-300 cursor-pointer"
                 >
                     <div className="relative aspect-square mb-4 rounded-lg overflow-hidden shadow-lg">

@@ -25,6 +25,7 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('api/music/', include('music.urls')),
     path('api/voice/', include('speechToText.urls')),
+    path('api/suggest/', include('suggest.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
