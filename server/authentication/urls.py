@@ -7,7 +7,9 @@ from authentication.views import (
     VerifyOTPView,
     ForgotPasswordView,
     ResetPasswordView,
-    ResendOTPView
+    ResendOTPView,
+    SearchUserView,
+    FollowUserView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView 
 
@@ -32,4 +34,8 @@ urlpatterns = [
     # User Profile, OnBoarding
     path('user/update-profile/', UpdateProfileView.as_view(), name='update-profile'),
     path('user/me/', UserProfileView.as_view(), name='user-me'),
+
+    # Follow/Unfollow User
+    path('user/search/', SearchUserView.as_view(), name='user-search'),
+    path('user/follow/<str:username>/', FollowUserView.as_view(), name='user-follow'),
 ]

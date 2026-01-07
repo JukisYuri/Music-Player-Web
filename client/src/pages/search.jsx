@@ -4,6 +4,7 @@ import { Play, Clock, Music, Heart, PlusCircle, User, Disc, Search as SearchIcon
 import { HeaderBar } from '../components/header_bar.jsx';
 import { Sidebar } from '../components/sidebar.jsx';
 import { PlayerBar } from '../components/player_bar.jsx';
+import { useTranslation } from 'react-i18next';
 
 const getRandomColor = () => {
     const colors = ["from-blue-600 to-purple-600", "from-green-600 to-teal-600", "from-rose-600 to-orange-600", "from-yellow-500 to-red-600", "from-gray-600 to-slate-800"];
@@ -11,6 +12,7 @@ const getRandomColor = () => {
 };
 
 export function Search() {
+    const { t } = useTranslation();
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
     const query = searchParams.get('q') || ''; // Lấy từ khóa từ URL
@@ -104,19 +106,19 @@ export function Search() {
                     {/* Kết quả tìm kiếm Header */}
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold flex items-center gap-3">
-                            Kết quả tìm kiếm cho "{query}"
+                            {t('search.results_for', { query })}
                         </h1>
                     </div>
 
                     {isLoading ? (
                         <div className="flex items-center justify-center h-64 text-neutral-500">
-                            Đang tìm kiếm...
+                            {t('search.is_researching')}
                         </div>
                     ) : results.songs.length === 0 && results.artists.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-64 text-neutral-400">
                             <SearchIcon size={64} className="mb-4 opacity-50"/>
-                            <p className="text-xl">Không tìm thấy kết quả nào cho "{query}"</p>
-                            <p className="text-sm mt-2">Hãy thử tìm từ khóa khác hoặc tên ca sĩ.</p>
+                            <p className="text-xl font-semibold">{t('search.not_found', {query})}</p>
+                            <p className="text-base mt-2">{t('search.try_different')}</p>
                         </div>
                     ) : (
                         <div className="flex flex-col gap-10">
@@ -125,7 +127,7 @@ export function Search() {
                             {results.songs.length > 0 && (
                                 <section className="flex gap-6">
                                     <div className="w-full md:w-2/5">
-                                        <h2 className="text-2xl font-bold mb-4">Kết quả hàng đầu</h2>
+                                        <h2 className="text-2xl font-bold mb-4">{t('search.top_results')}</h2>
                                         <div
                                             onClick={() => handlePlaySong(results.songs[0])}
                                             className="group bg-neutral-900 p-6 rounded-xl hover:bg-neutral-800 transition-colors cursor-pointer relative"
@@ -148,7 +150,7 @@ export function Search() {
 
                                     {/* Danh sách bài hát (Bên phải Top Result) */}
                                     <div className="w-full md:w-3/5">
-                                        <h2 className="text-2xl font-bold mb-4">Bài hát</h2>
+                                        <h2 className="text-2xl font-bold mb-4">{t('search.songs')}</h2>
                                         <div className="flex flex-col">
                                             {results.songs.slice(0, 4).map((song) => (
                                                 <div key={song.id} onClick={() => handlePlaySong(song)} className="group flex items-center justify-between p-2 rounded-md hover:bg-neutral-800 cursor-pointer">
@@ -180,7 +182,7 @@ export function Search() {
                             {/* 2. NGHỆ SĨ */}
                             {results.artists.length > 0 && (
                                 <section>
-                                    <h2 className="text-2xl font-bold mb-4">Nghệ sĩ</h2>
+                                    <h2 className="text-2xl font-bold mb-4">{t('search.artists')}</h2>
                                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                                         {results.artists.map((artist, idx) => (
                                             <div key={idx} className="bg-neutral-900/50 p-4 rounded-xl hover:bg-neutral-800 transition-colors cursor-pointer group">
@@ -188,7 +190,7 @@ export function Search() {
                                                     {artist.cover ? <img src={artist.cover} className="w-full h-full object-cover"/> : <div className="bg-neutral-700 w-full h-full flex items-center justify-center"><User size={40}/></div>}
                                                 </div>
                                                 <h3 className="font-bold text-center truncate">{artist.name}</h3>
-                                                <p className="text-sm text-neutral-400 text-center">Nghệ sĩ</p>
+                                                <p className="text-sm text-neutral-400 text-center">{t('search.artists')}</p>
                                             </div>
                                         ))}
                                     </div>

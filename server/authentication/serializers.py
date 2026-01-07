@@ -55,3 +55,16 @@ class UserSerializer(serializers.ModelSerializer):
     # Logic check google social account
     def get_is_in_google_social(self, obj):
         return not obj.has_usable_password()
+    
+class UserSearchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'display_name', 'profile_image_url', 'is_following']
+    
+    def get_is_following(self, obj):
+        # Lấy user đang thực hiện search
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            # Kiểm tra xem user tìm thấy (obj) có nằm trong list following của mình không
+            return request.user.following.filter(id=obj.id).exists()
+        return False

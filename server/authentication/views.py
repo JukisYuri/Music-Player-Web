@@ -15,6 +15,9 @@ from django.utils import timezone
 from datetime import timedelta
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
+from rest_framework.generics import ListAPIView
+from django.shortcuts import get_object_or_404
+from .serializers import UserSearchSerializer
 
 User = get_user_model()
 
@@ -274,3 +277,45 @@ class UserProfileView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     def get_object(self):
         return self.request.user
+    
+# ============================================================================
+# Search Users
+class SearchUserView(ListAPIView):
+    serializer_class = UserSearchSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        query = self.request.query_params.get('q', '') # Lấy từ url: /api/search/?q=mizu
+        if query:
+            # Tìm username chứa từ khóa (icontains = không phân biệt hoa thường)
+            # Và loại trừ chính mình (exclude self)
+            return User.objects.filter(username__icontains=query).exclude(id=self.request.user.id)
+        return User.objects.none()
+
+# Follow/Unfollow User
+class FollowUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, username):
+        # Tìm người muốn follow
+        target_user = get_object_or_404(User, username=username)
+        current_user = request.user
+
+        if current_user == target_user:
+            return Response({"message": "Không thể tự follow chính mình"}, status=400)
+
+        # Logic Toggle Follow / Unfollow
+        if current_user.following.filter(id=target_user.id).exists():
+            current_user.following.remove(target_user)
+            is_following = False
+            msg = "Đã hủy theo dõi"
+        else:
+            current_user.following.add(target_user)
+            is_following = True
+            msg = "Đã theo dõi"
+
+        return Response({
+            "message": msg,
+            "is_following": is_following, # Trả về trạng thái mới để React cập nhật nút bấm
+            "follower_count": target_user.followers.count() # Cập nhật lại số người theo dõi
+        }, status=200)

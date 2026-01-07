@@ -148,5 +148,14 @@
       "display_name": "Display Name",
       "username": "Username (Unique)",
       "submit": "Complete & Explore"
+    },
+    "search": {
+      "not_found": "No results found for \"{{query}}\"",
+      "try_different": "Try searching for different keywords or artist names",
+      "results_for": "Search results for \"{{query}}\"",
+      "is_researching": "Searching...",
+      "top_results": "Top Results",
+      "songs": "Songs",
+      "artists": "Artists"
     }
   }

@@ -148,5 +148,14 @@
       "display_name": "Tên Hiển Thị",
       "username": "Tên Đăng Nhập (Duy Nhất)",
       "submit": "Hoàn Tất & Khám Phá"
+    },
+    "search": {
+      "not_found": "Không tìm thấy kết quả nào cho \"{{query}}\"",
+      "try_different": "Hãy thử tìm từ khóa khác hoặc tên ca sĩ",
+      "results_for": "Kết quả tìm kiếm cho \"{{query}}\"",
+      "is_researching": "Đang tìm kiếm...",
+      "top_results": "Kết quả hàng đầu",
+      "songs": "Bài hát",
+      "artists": "Nghệ sĩ"
     }
   }
