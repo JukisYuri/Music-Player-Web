@@ -10,6 +10,7 @@ import { Setting } from './pages/Setting.jsx';
 import { Notification } from './pages/Notification.jsx';
 import { AlbumDetail} from "./pages/AlbumDetail.jsx";
 import { Search} from "./pages/search.jsx";
+import GuessRoute from './context/guess_route.jsx';
 
 function App() {
   return (
@@ -17,17 +18,19 @@ function App() {
       <Route path="/" element={<Navigate to="/index" replace />} />
       
       {/* Định nghĩa đường dẫn */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/index" element={<Index />} />
       <Route path="/album/:artistName" element={<AlbumDetail />} />
       <Route path="/profile" element={<Profile />} />
-      <Route path="/onboarding" element={<OnBoarding />} />
       <Route path="/playlist" element={<Playlist/>} />
       <Route path="/setting" element={<Setting/>} />
       <Route path="/notification" element={<Notification/>} />
       <Route path="/search" element={<Search />} />
+      <Route element={<GuessRoute />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/onboarding" element={<OnBoarding />} />
+      </Route>
     </Routes>
   )
 }

@@ -34,8 +34,8 @@ export function Index() {
     // Playback States
     const [currentQueue, setCurrentQueue] = useState([]);
     const [currentSong, setCurrentSong] = useState({
-        title: "Sẵn sàng",
-        artist: "Chọn bài hát...",
+        title: t('home_page.ready'),
+        artist: t('home_page.pick_song'),
         audioUrl: "",
         cover: ""
     });

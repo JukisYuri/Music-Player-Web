@@ -62,8 +62,8 @@
       "description2": "bài hát"
     },
     "home_page": {
-      "load_data": "Đang tải dữ liệu...",
-      "please_wait": "Vui lòng đợi",
+      "ready": "Sẵn sàng",
+      "pick_song": "Chọn bài hát bạn thích",
       "now_playing": "Đang phát",
       "popular_music": "Top Thịnh Hành",
       "popular_albums": "Album Phổ Biến",

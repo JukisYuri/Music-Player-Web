@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
-import { PenLine, X, Save, Camera } from 'lucide-react';
-import { ProfileListSong } from './profile_listsong'; // Đảm bảo file này tồn tại
+import { PenLine, X, Save, Camera, UserRoundPen } from 'lucide-react';
+import { ProfileListSong } from './profile_listsong';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios'; // 1. Thêm import axios
+import axios from 'axios';
 import { useAuth } from '../context/auth_context.jsx';
 
 export function ProfileContent() {
@@ -83,7 +83,7 @@ export function ProfileContent() {
     }
 
     if (!user) {
-        return <div className="text-white p-10">{t('profile.no_user')}</div>;
+        return <div className="text-white p-10 text-2xl font-bold flex gap-2"><UserRoundPen size={32}/>{t('profile.no_user')}</div>;
     }
 
     return (
@@ -190,7 +190,7 @@ export function ProfileContent() {
             {/* --- MAIN CONTENT (VIEW MODE) --- */}
             <div className="relative z-10">
                 <div className="bg-linear-to-b from-[#7F1D1D]/90 via-[#451010]/80 to-[#121212] p-8 pb-6 backdrop-blur-sm">
-                    <div className="text-white text-3xl font-bold mb-4">{t('profile.title', 'Hồ sơ')}</div>
+                    <div className="text-white text-3xl font-bold mb-4">{t('profile.title')}</div>
                     <div className="flex flex-row gap-10">
                         <div className="relative group shrink-0 w-48 h-48 flex items-center justify-center">
                             <div className="absolute -inset-3 bg-[conic-gradient(transparent,transparent,#ef4444)] rounded-full animate-spin blur-md opacity-70" style={{ animationDuration: '3s' }}></div>
@@ -206,7 +206,6 @@ export function ProfileContent() {
                         </div>
                         <div className="flex flex-col">
                             <div className="flex flex-row items-center gap-2">
-                                {/* Dùng user.display_name thay vì profile.name */}
                                 <div className="text-white text-4xl font-semibold mt-4">
                                     {user.display_name}
                                 </div>
