@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Play, Clock, Music, Heart, PlusCircle, User, Disc, Search as SearchIcon } from 'lucide-react';
+import { Play, Music, Heart, User, Search as SearchIcon } from 'lucide-react';
 import { HeaderBar } from '../components/header_bar.jsx';
 import { Sidebar } from '../components/sidebar.jsx';
-import { PlayerBar } from '../components/player_bar.jsx';
+import { useMusic } from '../context/MusicContext.jsx'; // 1. Import Context
 
 const getRandomColor = () => {
     const colors = ["from-blue-600 to-purple-600", "from-green-600 to-teal-600", "from-rose-600 to-orange-600", "from-yellow-500 to-red-600", "from-gray-600 to-slate-800"];
@@ -13,15 +13,14 @@ const getRandomColor = () => {
 export function Search() {
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
-    const query = searchParams.get('q') || ''; // Lấy từ khóa từ URL
+    const query = searchParams.get('q') || '';
+
+    // 2. Lấy Global State
+    const { playSong, currentSong} = useMusic();
 
     // Data States
     const [results, setResults] = useState({ songs: [], artists: [], albums: [] });
     const [isLoading, setIsLoading] = useState(true);
-
-    // Player States
-    const [currentSong, setCurrentSong] = useState({ title: "Sẵn sàng", artist: "Chọn bài hát...", audioUrl: "", cover: "" });
-    const [isPlaying, setIsPlaying] = useState(false);
     const [likedSongs, setLikedSongs] = useState(new Set());
 
     // --- LOGIC TÌM KIẾM ---
@@ -29,7 +28,6 @@ export function Search() {
         const fetchDataAndSearch = async () => {
             setIsLoading(true);
             try {
-                // 1. Lấy toàn bộ bài hát
                 const res = await fetch(`http://127.0.0.1:8000/api/music/local-songs/`);
                 const allSongs = await res.json();
 
@@ -41,20 +39,20 @@ export function Search() {
 
                 const lowerQuery = query.toLowerCase();
 
-                // 2. Lọc Bài hát
+                // Lọc Bài hát
                 const matchedSongs = allSongs.filter(song =>
                     song.title.toLowerCase().includes(lowerQuery) ||
                     song.artist.toLowerCase().includes(lowerQuery)
                 );
 
-                // 3. Lọc Nghệ sĩ
+                // Lọc Nghệ sĩ
                 const uniqueArtists = [...new Set(matchedSongs.map(s => s.artist))].map(artist => ({
                     name: artist,
                     type: 'Nghệ sĩ',
                     cover: matchedSongs.find(s => s.artist === artist)?.cover
                 }));
 
-                // 4. Lọc Album
+                // Lọc Album
                 const uniqueAlbums = [...new Set(matchedSongs.map(s => s.album || `Tuyển tập ${s.artist}`))].map(albumName => ({
                     title: albumName,
                     artist: matchedSongs.find(s => (s.album || `Tuyển tập ${s.artist}`) === albumName)?.artist,
@@ -78,12 +76,9 @@ export function Search() {
         fetchDataAndSearch();
     }, [query]);
 
+    // 3. Sử dụng hàm playSong từ Context
     const handlePlaySong = (song) => {
-        setCurrentSong(song);
-        setIsPlaying(true);
-        fetch(`http://127.0.0.1:8000/api/music/view/${song.id}/`, {
-            method: 'POST'
-        });
+        playSong(song);
     };
 
     const toggleLike = (songId) => {
@@ -101,7 +96,6 @@ export function Search() {
                 <Sidebar />
                 <main className="flex-1 p-8 ml-64 pt-20 pb-32 overflow-y-auto min-h-screen">
 
-                    {/* Kết quả tìm kiếm Header */}
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold flex items-center gap-3">
                             Kết quả tìm kiếm cho "{query}"
@@ -121,7 +115,7 @@ export function Search() {
                     ) : (
                         <div className="flex flex-col gap-10">
 
-                            {/* 1. KẾT QUẢ HÀNG ĐẦU (Top Result) */}
+                            {/* 1. KẾT QUẢ HÀNG ĐẦU */}
                             {results.songs.length > 0 && (
                                 <section className="flex gap-6">
                                     <div className="w-full md:w-2/5">
@@ -139,14 +133,13 @@ export function Search() {
                                                 <span>{results.songs[0].artist}</span>
                                             </div>
 
-                                            {/* Nút Play to */}
                                             <div className="absolute bottom-6 right-6 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center shadow-lg opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:scale-105">
                                                 <Play size={24} fill="black" className="ml-1 text-black"/>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Danh sách bài hát (Bên phải Top Result) */}
+                                    {/* Danh sách bài hát */}
                                     <div className="w-full md:w-3/5">
                                         <h2 className="text-2xl font-bold mb-4">Bài hát</h2>
                                         <div className="flex flex-col">
@@ -223,16 +216,6 @@ export function Search() {
                     )}
                 </main>
             </div>
-
-            <PlayerBar
-                currentSong={currentSong.title}
-                artist={currentSong.artist}
-                audioUrl={currentSong.audioUrl}
-                cover={currentSong.cover}
-                onPlayingChange={setIsPlaying}
-                playlist={results.songs}
-                onPlaySong={handlePlaySong}
-            />
         </div>
     );
 }
