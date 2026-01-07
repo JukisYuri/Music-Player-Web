@@ -1,6 +1,10 @@
+# models.py
+from django.conf import settings
 from django.db import models
 from django.contrib.auth import get_user_model
+
 User = get_user_model()
+
 
 class Artist(models.Model):
     name = models.CharField(max_length=255)
@@ -13,24 +17,12 @@ class Artist(models.Model):
         return self.name
 
 
-# 2. Bảng Album
-class Album(models.Model):
-    title = models.CharField(max_length=255)
-    artists = models.ManyToManyField(Artist, related_name='albums', blank=True)
-    cover_image = models.ImageField(upload_to='albums/', default='albums/default.jpg')
-    release_date = models.DateField(blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
+# --- Thay đổi chính ở đây ---
 
-    def __str__(self):
-        return self.title
-
-
-# 3. Bảng Bài hát
 class Song(models.Model):
     title = models.CharField(max_length=255)
     artists = models.ManyToManyField(Artist, related_name='songs', blank=True)
 
-    album = models.ForeignKey(Album, on_delete=models.SET_NULL, null=True, blank=True, related_name='songs')
     audio_file = models.FileField(upload_to='songs/')
     cover_image = models.ImageField(upload_to='image/', blank=True, null=True)
     duration = models.IntegerField(default=0)
@@ -42,22 +34,45 @@ class Song(models.Model):
         return self.title
 
 
-# 4. Bảng Playlist
-class Playlist(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='playlists')
+class Album(models.Model):
     title = models.CharField(max_length=255)
+
+    songs = models.ManyToManyField(Song, through='AlbumSong', related_name='albums', blank=True)
+
+    artists = models.ManyToManyField(Artist, related_name='albums', blank=True)
+    cover_image = models.ImageField(upload_to='albums/', default='albums/default.jpg')
+    release_date = models.DateField(blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.title
+
+
+class AlbumSong(models.Model):
+    album = models.ForeignKey(Album, on_delete=models.CASCADE)
+    song = models.ForeignKey(Song, on_delete=models.CASCADE)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return ""
+
+
+class Playlist(models.Model):
+    title = models.CharField(max_length=255)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='playlists')
     description = models.TextField(blank=True, null=True)
     cover_image = models.ImageField(upload_to='playlists/', default='playlists/default.jpg')
-    is_public = models.BooleanField(default=True)  # Công khai hoặc Riêng tư
+    is_public = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
     songs = models.ManyToManyField(Song, through='PlaylistSong', related_name='playlists')
 
     def __str__(self):
         return f"{self.title} - {self.user.username}"
 
 
-# 5. Bảng Trung gian Playlist
 class PlaylistSong(models.Model):
     playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE)
     song = models.ForeignKey(Song, on_delete=models.CASCADE)
@@ -66,3 +81,15 @@ class PlaylistSong(models.Model):
 
     class Meta:
         ordering = ['order']
+
+    def __str__(self):
+        return ""
+
+class Comment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
+    song = models.ForeignKey(Song, on_delete=models.CASCADE, related_name='comments')
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.song.title}"

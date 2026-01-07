@@ -1,13 +1,14 @@
 import os
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from music.models import Song, Artist, Album
+from music.models import Song, Artist
+# Đã xóa import Album nếu không dùng đến, hoặc giữ lại nếu file models.py bắt buộc
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3
 
 
 class Command(BaseCommand):
-    help = 'Quét nhạc hỗ trợ nhiều ca sĩ (ngăn cách bởi dấu phẩy)'
+    help = 'Quét nhạc hỗ trợ nhiều ca sĩ (ngăn cách bởi dấu phẩy), không tạo Album'
 
     def handle(self, *args, **kwargs):
         MP3_FOLDER = 'mp3'
@@ -33,12 +34,11 @@ class Command(BaseCommand):
                     # Lấy chuỗi raw artist (VD: "Artist A, Artist B")
                     artist_raw = str(tags.get('TPE1')) if tags.get('TPE1') else "Unknown Artist"
 
-                    album_name = str(tags.get('TALB')) if tags.get('TALB') else None
+                    # Không cần đọc album_name nữa
                     duration = int(audio.info.length)
                 except:
                     title = filename.replace('.mp3', '')
                     artist_raw = "Unknown Artist"
-                    album_name = "Unknown Album"
                     duration = 0
 
                 # 2. Xử lý Đa Nghệ sĩ (Split dấu phẩy)
@@ -50,14 +50,7 @@ class Command(BaseCommand):
                     a_obj, _ = Artist.objects.get_or_create(name=name)
                     artist_objs.append(a_obj)
 
-                # 3. Xử lý Album
-                if not album_name:
-                    # Lấy tên nghệ sĩ đầu tiên làm tên Album tuyển tập
-                    album_name = f"Tuyển tập {artist_names[0]}"
-                album_obj, _ = Album.objects.get_or_create(title=album_name)
-
-                album_obj.artists.add(*artist_objs)
-                # ---------------------
+                # [ĐÃ XÓA] Bước 3: Xử lý Album (Logic cũ đã được loại bỏ tại đây)
 
                 # 4. Tìm ảnh cover
                 cover_rel_path = None
@@ -67,11 +60,11 @@ class Command(BaseCommand):
                         cover_rel_path = os.path.join(IMG_FOLDER, f"{base_name}{ext}")
                         break
 
-                # 5. Lưu Bài Hát
+                # 5. Lưu Bài Hát (Không gán Album)
                 song_obj, created = Song.objects.update_or_create(
                     title=title,
                     defaults={
-                        'album': album_obj,
+                        # 'album': ... (Đã xóa dòng này),
                         'audio_file': os.path.join(MP3_FOLDER, filename),
                         'duration': duration,
                         'cover_image': cover_rel_path
