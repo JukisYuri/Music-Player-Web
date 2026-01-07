@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Play, Clock, Music, Heart, PlusCircle, User, Disc, Search as SearchIcon } from 'lucide-react';
+import { useState, useEffect } from 'react'; // Bỏ 'use' thừa
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Play, Music, Heart, User, Search as SearchIcon } from 'lucide-react';
 import { HeaderBar } from '../components/header_bar.jsx';
 import { Sidebar } from '../components/sidebar.jsx';
 import { PlayerBar } from '../components/player_bar.jsx';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../context/auth_context.jsx';
+import axios from 'axios';
 
 const getRandomColor = () => {
     const colors = ["from-blue-600 to-purple-600", "from-green-600 to-teal-600", "from-rose-600 to-orange-600", "from-yellow-500 to-red-600", "from-gray-600 to-slate-800"];
@@ -12,13 +14,17 @@ const getRandomColor = () => {
 };
 
 export function Search() {
+    const { user } = useAuth();
     const { t } = useTranslation();
     const location = useLocation();
+    const navigate = useNavigate();
+
+    // Lấy từ khóa tìm kiếm từ URL
     const searchParams = new URLSearchParams(location.search);
-    const query = searchParams.get('q') || ''; // Lấy từ khóa từ URL
+    const query = searchParams.get('q') || ''; 
 
     // Data States
-    const [results, setResults] = useState({ songs: [], artists: [], albums: [] });
+    const [results, setResults] = useState({ songs: [], artists: [], albums: [], users: [] });
     const [isLoading, setIsLoading] = useState(true);
 
     // Player States
@@ -31,17 +37,26 @@ export function Search() {
         const fetchDataAndSearch = async () => {
             setIsLoading(true);
             try {
-                // 1. Lấy toàn bộ bài hát
-                const res = await fetch(`http://127.0.0.1:8000/api/music/local-songs/`);
-                const allSongs = await res.json();
-
+                // Nếu không có query thì reset và return
                 if (!query) {
-                    setResults({ songs: [], artists: [], albums: [] });
+                    setResults({ songs: [], artists: [], albums: [], users: [] });
                     setIsLoading(false);
                     return;
                 }
 
                 const lowerQuery = query.toLowerCase();
+                const token = localStorage.getItem('token');
+
+                // --- GỌI API SONG SONG ---
+                const [localSongsRes, userSearchRes] = await Promise.all([
+                    fetch(`http://127.0.0.1:8000/api/music/local-songs/`),
+                    axios.get(`http://127.0.0.1:8000/api/user/search/?q=${query}`, {
+                        headers: token ? { Authorization: `Bearer ${token}` } : {}
+                    })
+                ]);
+
+                const usersData = userSearchRes.data || [];
+                const allSongs = await localSongsRes.json();
 
                 // 2. Lọc Bài hát
                 const matchedSongs = allSongs.filter(song =>
@@ -67,7 +82,8 @@ export function Search() {
                 setResults({
                     songs: matchedSongs,
                     artists: uniqueArtists,
-                    albums: uniqueAlbums
+                    albums: uniqueAlbums,
+                    users: usersData
                 });
 
             } catch (err) {
@@ -88,6 +104,34 @@ export function Search() {
         });
     };
 
+    const handleFollow = async (targetUsername) => {
+        try {
+            if (!user) {
+                alert("Bạn cần đăng nhập để theo dõi người khác!");
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+            // Optimistic UI Update
+            setResults(prev => ({
+                ...prev,
+                users: prev.users.map(u => 
+                    u.username === targetUsername 
+                    ? { ...u, is_following: !u.is_following } 
+                    : u
+                )
+            }));
+
+            await axios.post(`http://127.0.0.1:8000/api/user/follow/${targetUsername}/`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+        } catch (error) {
+            console.error("Lỗi follow:", error);
+            alert("Có lỗi xảy ra khi theo dõi/ngừng theo dõi người dùng");
+        }
+    };
+
     const toggleLike = (songId) => {
         setLikedSongs(prev => {
             const newSet = new Set(prev);
@@ -98,7 +142,7 @@ export function Search() {
 
     return (
         <div className="min-h-screen bg-neutral-950 text-white flex flex-col">
-            <HeaderBar username="Oleny" />
+            <HeaderBar />          
             <div className="flex flex-1">
                 <Sidebar />
                 <main className="flex-1 p-8 ml-64 pt-20 pb-32 overflow-y-auto min-h-screen">
@@ -114,7 +158,7 @@ export function Search() {
                         <div className="flex items-center justify-center h-64 text-neutral-500">
                             {t('search.is_researching')}
                         </div>
-                    ) : results.songs.length === 0 && results.artists.length === 0 ? (
+                    ) : (results.songs.length === 0 && results.artists.length === 0 && results.users.length === 0) ? (
                         <div className="flex flex-col items-center justify-center h-64 text-neutral-400">
                             <SearchIcon size={64} className="mb-4 opacity-50"/>
                             <p className="text-xl font-semibold">{t('search.not_found', {query})}</p>
@@ -178,8 +222,52 @@ export function Search() {
                                     </div>
                                 </section>
                             )}
+                            
+                            {/* 2. USERS (HIỂN THỊ KHI CÓ KẾT QUẢ) */}
+                            {results.users.length > 0 && (
+                                <section>
+                                    <h2 className="text-2xl font-bold mb-4">Người dùng</h2>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                                        {results.users.map((u) => (
+                                            <div key={u.id} className="bg-neutral-900/50 p-4 rounded-xl hover:bg-neutral-800 transition-colors flex flex-col items-center group relative cursor-pointer"
+                                                onClick={() => navigate(`/profile/${u.username}`)}
+                                            >
+                                                {/* Avatar */}
+                                                <div className="w-32 h-32 rounded-full overflow-hidden mb-4 shadow-lg border-2 border-neutral-800 group-hover:border-neutral-600 transition-colors">
+                                                    {u.profile_image_url ? (
+                                                        <img src={`http://127.0.0.1:8000${u.profile_image_url}`} alt={u.username} className="w-full h-full object-cover"/>
+                                                    ) : (
+                                                        <div className="bg-neutral-700 w-full h-full flex items-center justify-center">
+                                                            <User size={48} className="text-neutral-400"/>
+                                                        </div>
+                                                    )}
+                                                </div>
 
-                            {/* 2. NGHỆ SĨ */}
+                                                {/* Info */}
+                                                <h3 className="font-bold text-center truncate w-full px-2">{u.display_name || u.username}</h3>
+                                                <p className="text-sm text-neutral-400 text-center mb-4">@{u.username}</p>
+
+                                                {/* Button Follow */}
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); 
+                                                        handleFollow(u.username);
+                                                    }}
+                                                    className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all transform active:scale-95 ${
+                                                        u.is_following 
+                                                        ? 'bg-transparent border border-neutral-500 text-white hover:border-white' 
+                                                        : 'bg-white text-black hover:bg-neutral-200'
+                                                    }`}
+                                                >
+                                                    {u.is_following ? 'Đang theo dõi' : 'Theo dõi'}
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+
+                            {/* 3. NGHỆ SĨ */}
                             {results.artists.length > 0 && (
                                 <section>
                                     <h2 className="text-2xl font-bold mb-4">{t('search.artists')}</h2>
@@ -197,7 +285,7 @@ export function Search() {
                                 </section>
                             )}
 
-                            {/* 3. ALBUMS */}
+                            {/* 4. ALBUMS */}
                             {results.albums.length > 0 && (
                                 <section>
                                     <h2 className="text-2xl font-bold mb-4">Album</h2>

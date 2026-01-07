@@ -1,9 +1,10 @@
-import { useState, useRef } from 'react';
-import { PenLine, X, Save, Camera, UserRoundPen } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { PenLine, X, Save, Camera, UserRoundPen, User } from 'lucide-react';
 import { ProfileListSong } from './profile_listsong';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { useAuth } from '../context/auth_context.jsx';
+import { useNavigate } from 'react-router-dom';
 
 export function ProfileContent() {
     const { t } = useTranslation();
@@ -12,6 +13,28 @@ export function ProfileContent() {
     // State cho Modal edit
     const [isEditing, setIsEditing] = useState(false);
     const [tempProfile, setTempProfile] = useState({});
+    const navigate = useNavigate();
+    // State lưu danh sách người đang follow
+    const [followingList, setFollowingList] = useState([]);
+
+    // Gọi API lấy danh sách following khi component load
+    useEffect(() => {
+        const fetchFollowing = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    const res = await axios.get('http://localhost:8000/api/user/me/following/', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    setFollowingList(res.data);
+                }
+            } catch (error) {
+                console.error("Lỗi lấy danh sách following:", error);
+            }
+        };
+
+        fetchFollowing();
+    }, [user]);
 
     // Khi mở modal, copy dữ liệu user hiện tại vào temp
     const handleOpenEdit = () => {
@@ -40,7 +63,9 @@ export function ProfileContent() {
     };
     // Hàm trigger file input
     const handleTriggerFileSelect = () => {
-        fileInputRef.current.click();
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
     };
 
     // Hàm lưu
@@ -223,29 +248,63 @@ export function ProfileContent() {
                                     <PenLine size={16} />
                                     {t('profile.edit_profile')}
                                 </button>
-                                <p className='text-white text-sm font-medium opacity-70'>0 {t('profile.followers')}</p>
+                                <p className='text-white text-sm font-medium opacity-70'>{user.followers_count || 0} {t('profile.followers')}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className='mt-8 ml-8'>
+                {/* Logic cho phần Often Listenning Songs */}
+                {/* <div className='mt-8 ml-8'>
                     <p className='text-white text-2xl font-bold'>{t('profile.listened_songs')}</p>
                     <p className='text-neutral-400 text-base font-normal mt-2'>{t('profile.visible_for_you')}</p>
                 </div>
 
                 <div className="flex flex-col mx-2 mt-4 gap-2">
                     <ProfileListSong />
-                </div>
+                </div> */}
 
-                <div className='mt-8 mx-8 flex flex-col gap-2 pb-10'>
-                    <div className='flex flex-row gap-3 items-baseline'>
-                        <p className='text-white text-2xl font-bold'>{t('profile.following')}</p>
-                        <p className='text-neutral-400 text-base font-normal'>0 {t('profile.followed')}</p>
-                    </div>
-                    <p className='text-neutral-500 text-sm font-normal'>{t('profile.no_followed')}</p>
+                {/* Logic cho phần Following */}
+                <div className='mt-8 mx-8 pb-10'>
+                <div className='flex flex-row gap-3 items-baseline mb-4'>
+                    <p className='text-white text-2xl font-bold'>{t('profile.following')}</p>
+                    <p className='text-neutral-400 text-base font-normal'>{user.following_count || 0} {t('profile.followed')}</p>
                 </div>
+                {followingList.length > 0 ? (
+                    <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-4 mb-20">
+                        {followingList.map((u) => (
+                            <div 
+                                key={u.id} 
+                                onClick={() => navigate(`/profile/${u.username}`)}
+                                className="bg-neutral-900/50 p-3 rounded-lg hover:bg-neutral-800 transition-colors cursor-pointer group">
+                                    
+                                {/* Avatar Container */}
+                                <div className="aspect-square rounded-full overflow-hidden mb-2 shadow-lg relative border border-neutral-800 group-hover:border-neutral-600 transition-colors"> {/* Giảm mb xuống 2 */}
+                                    {u.profile_image_url ? (
+                                        <img 
+                                            src={getAvatarUrl(u.profile_image_url)} 
+                                            className="w-full h-full object-cover"
+                                            alt={u.username}/>
+                                    ) : (
+                                        <div className="w-full h-full bg-neutral-700 flex items-center justify-center">
+                                            <User size={32} className="text-neutral-400"/> {/* Icon nhỏ hơn chút */}
+                                        </div>
+                                    )}
+                                    
+                                    <div className="absolute inset-0 bg-black/20 opacity-0 transition-opacity"></div>
+                                </div>
+                                
+                                {/* Text Info */}
+                                <h3 className="text-sm font-bold truncate text-center">{u.display_name || u.username}</h3>
+                                <p className="text-xs text-neutral-400 truncate text-center mt-0.5">@{u.username}</p>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p className='text-neutral-500 text-sm font-normal'>{t('profile.no_followed')}</p>
+                )}
             </div>
         </div>
+    </div>
     )
 }

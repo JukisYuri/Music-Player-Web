@@ -10,8 +10,9 @@ from authentication.views import (
     ResendOTPView,
     SearchUserView,
     FollowUserView,
+    UserFollowingListView
 )
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView 
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 # URL patterns cho authentication app
 urlpatterns = [
@@ -38,4 +39,5 @@ urlpatterns = [
     # Follow/Unfollow User
     path('user/search/', SearchUserView.as_view(), name='user-search'),
     path('user/follow/<str:username>/', FollowUserView.as_view(), name='user-follow'),
+    path('user/me/following/', UserFollowingListView.as_view(), name='user-following-list'),
 ]

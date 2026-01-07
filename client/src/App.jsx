@@ -29,8 +29,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/onboarding" element={<OnBoarding />} />
       </Route>
+      <Route path="/onboarding" element={<OnBoarding />} />
     </Routes>
   )
 }

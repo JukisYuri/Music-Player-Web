@@ -319,3 +319,11 @@ class FollowUserView(APIView):
             "is_following": is_following, # Trả về trạng thái mới để React cập nhật nút bấm
             "follower_count": target_user.followers.count() # Cập nhật lại số người theo dõi
         }, status=200)
+    
+class UserFollowingListView(ListAPIView):
+    serializer_class = UserSearchSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Trả về danh sách những người mà user hiện tại đang follow
+        return self.request.user.following.all()
