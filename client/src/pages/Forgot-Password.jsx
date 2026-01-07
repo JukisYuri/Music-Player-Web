@@ -19,6 +19,7 @@ export function ForgotPassword() {
         const [otp, setOtp] = useState("");
         const [timeLeft, setTimeLeft] = useState(0); 
         const [isActive, setIsActive] = useState(false);
+        const [isLoading, setIsLoading] = useState(false);
 
         const isMatch = newPassword === confirmNewPassword && newPassword.length > 0
         const isMatchWithoutLength = newPassword === confirmNewPassword
@@ -39,6 +40,8 @@ export function ForgotPassword() {
 
           const handleFormSubmit = async (e) => { // Thêm async
             e.preventDefault();
+            if (isLoading) return; // Ngăn chặn nhiều lần nhấn
+            setIsLoading(true);
             try {
             if (step === 'form') {
                 await axios.post('http://localhost:8000/api/forgot-password/', { 
@@ -61,17 +64,23 @@ export function ForgotPassword() {
             console.error("Lỗi trong quá trình xử lý:", error);
             const msg = error.response?.data?.message || "Có lỗi xảy ra";
             alert(msg);
+        } finally {
+            setIsLoading(false);
         }
     }
 
         const handleResendOtp = async () => {
             try {
+            if (isLoading) return; // Ngăn chặn nhiều lần nhấn
+            setIsLoading(true);
             await axios.post('http://localhost:8000/api/forgot-password/', { email: email, });
             setTimeLeft(60);
             setIsActive(true);
             } catch (error) {
                 console.error("Lỗi khi gửi lại OTP:", error);
                 alert(error.response?.data?.message || "Đã có lỗi xảy ra, vui lòng thử lại");
+            } finally {
+                setIsLoading(false);
             }
         }
 
@@ -104,22 +113,23 @@ export function ForgotPassword() {
                             <button
                                 type="button"
                                 onClick={handleResendOtp}
-                                disabled={isActive}
+                                disabled={isActive || isLoading}
                                 className={`font-medium transition-colors ${
-                                    isActive 
+                                    isActive || isLoading 
                                     ? 'text-neutral-500 cursor-not-allowed' 
                                     : 'text-green-500 hover:text-green-400 hover:underline cursor-pointer'
                                 }`}
                             >
-                                {isActive ? t('forgot_password.resend_otp_wait', { seconds: timeLeft }) : t('forgot_password.resend_otp')}
+                                {isLoading ? "Đang gửi..." : isActive ? t('forgot_password.resend_otp_wait', { seconds: timeLeft }) : t('forgot_password.resend_otp')}
                             </button>
                         </div>
                     )}
                     <button
-                        disabled={!isMatch}
+                        disabled={!isMatch || isLoading}
                         type="submit"
-                        className={`w-110 bg-green-600 hover:bg-green-700 text-white font-medium py-3.5 rounded-[5px] mt-6 mx-8 transition-colors ${!isMatch ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-                        {step === 'form' ? t('forgot_password.submit_verify') : t('forgot_password.submit_confirm')}
+                        className={`w-110 bg-green-600 hover:bg-green-700 text-white font-medium py-3.5 rounded-[5px] mt-6 mx-8 transition-colors 
+                        ${!isMatch || isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                        {isLoading ? "Đang xử lí" : (step === 'form') ? t('forgot_password.submit_verify') : t('forgot_password.submit_confirm')}
                     </button>
                     <div className="mt-10 mb-4 text-center text-xs text-neutral-400">
                         { step === 'form' ? (
