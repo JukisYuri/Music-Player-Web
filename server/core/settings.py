@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'authentication',
     'music',
     'speechToText',
+    'suggest',
 
 
 ]
@@ -227,25 +228,34 @@ UNFOLD = {
         "show_all_applications": True,
         "navigation": [
             {
+                "title": _("Báo cáo & Thống kê"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Tổng quan"),
+                        "icon": "monitoring",
+
+                        "link": reverse_lazy("admin:index"),
+                    },
+                ],
+            },
+            {
                 "title": _("Quản lý Nhạc"),
                 "separator": True,
                 "items": [
                     {
                         "title": _("Bài hát"),
                         "icon": "music_note",
-                        # SỬA Ở ĐÂY: Thêm reverse_lazy
                         "link": reverse_lazy("admin:music_song_changelist"),
                     },
                     {
                         "title": _("Album"),
                         "icon": "album",
-                        # SỬA Ở ĐÂY
                         "link": reverse_lazy("admin:music_album_changelist"),
                     },
                     {
                         "title": _("Ca sĩ"),
                         "icon": "person",
-                        # SỬA Ở ĐÂY
                         "link": reverse_lazy("admin:music_artist_changelist"),
                     },
                 ],
@@ -254,12 +264,12 @@ UNFOLD = {
                 "title": _("Người dùng"),
                 "separator": True,
                 "items": [
-                    {
-                        "title": _("Playlists"),
-                        "icon": "queue_music",
-                        # SỬA Ở ĐÂY
-                        "link": reverse_lazy("admin:music_playlist_changelist"),
-                    },
+                    # {
+                    #     "title": _("Playlists"),
+                    #     "icon": "queue_music",
+                    #     # SỬA Ở ĐÂY
+                    #     "link": reverse_lazy("admin:music_playlist_changelist"),
+                    # },
                     {
                         "title": _("Tài khoản"),
                         "icon": "group",
@@ -268,6 +278,7 @@ UNFOLD = {
                     },
                 ],
             },
+
         ],
     },
 }

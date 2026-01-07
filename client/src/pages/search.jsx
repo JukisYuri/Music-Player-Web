@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Play, Music, Heart, User, Search as SearchIcon } from 'lucide-react';
 import { HeaderBar } from '../components/header_bar.jsx';
 import { Sidebar } from '../components/sidebar.jsx';
-import { PlayerBar } from '../components/player_bar.jsx';
+import { useMusic } from '../context/MusicContext.jsx'; // 1. Import Context
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/auth_context.jsx';
 import axios from 'axios';
@@ -21,15 +21,14 @@ export function Search() {
 
     // Lấy từ khóa tìm kiếm từ URL
     const searchParams = new URLSearchParams(location.search);
-    const query = searchParams.get('q') || ''; 
+    const query = searchParams.get('q') || '';
+
+    // 2. Lấy Global State
+    const { playSong, currentSong} = useMusic();
 
     // Data States
     const [results, setResults] = useState({ songs: [], artists: [], albums: [], users: [] });
     const [isLoading, setIsLoading] = useState(true);
-
-    // Player States
-    const [currentSong, setCurrentSong] = useState({ title: "Sẵn sàng", artist: "Chọn bài hát...", audioUrl: "", cover: "" });
-    const [isPlaying, setIsPlaying] = useState(false);
     const [likedSongs, setLikedSongs] = useState(new Set());
 
     // --- LOGIC TÌM KIẾM ---
@@ -37,7 +36,6 @@ export function Search() {
         const fetchDataAndSearch = async () => {
             setIsLoading(true);
             try {
-                // Nếu không có query thì reset và return
                 if (!query) {
                     setResults({ songs: [], artists: [], albums: [], users: [] });
                     setIsLoading(false);
@@ -96,12 +94,9 @@ export function Search() {
         fetchDataAndSearch();
     }, [query]);
 
+    // 3. Sử dụng hàm playSong từ Context
     const handlePlaySong = (song) => {
-        setCurrentSong(song);
-        setIsPlaying(true);
-        fetch(`http://127.0.0.1:8000/api/music/view/${song.id}/`, {
-            method: 'POST'
-        });
+        playSong(song);
     };
 
     const handleFollow = async (targetUsername) => {
@@ -115,9 +110,9 @@ export function Search() {
             // Optimistic UI Update
             setResults(prev => ({
                 ...prev,
-                users: prev.users.map(u => 
-                    u.username === targetUsername 
-                    ? { ...u, is_following: !u.is_following } 
+                users: prev.users.map(u =>
+                    u.username === targetUsername
+                    ? { ...u, is_following: !u.is_following }
                     : u
                 )
             }));
@@ -142,12 +137,11 @@ export function Search() {
 
     return (
         <div className="min-h-screen bg-neutral-950 text-white flex flex-col">
-            <HeaderBar />          
+            <HeaderBar />
             <div className="flex flex-1">
                 <Sidebar />
                 <main className="flex-1 p-8 ml-64 pt-20 pb-32 overflow-y-auto min-h-screen">
 
-                    {/* Kết quả tìm kiếm Header */}
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold flex items-center gap-3">
                             {t('search.results_for', { query })}
@@ -167,7 +161,7 @@ export function Search() {
                     ) : (
                         <div className="flex flex-col gap-10">
 
-                            {/* 1. KẾT QUẢ HÀNG ĐẦU (Top Result) */}
+                            {/* 1. KẾT QUẢ HÀNG ĐẦU */}
                             {results.songs.length > 0 && (
                                 <section className="flex gap-6">
                                     <div className="w-full md:w-2/5">
@@ -192,7 +186,7 @@ export function Search() {
                                         </div>
                                     </div>
 
-                                    {/* Danh sách bài hát (Bên phải Top Result) */}
+                                    {/* Danh sách bài hát */}
                                     <div className="w-full md:w-3/5">
                                         <h2 className="text-2xl font-bold mb-4">{t('search.songs')}</h2>
                                         <div className="flex flex-col">
@@ -222,7 +216,7 @@ export function Search() {
                                     </div>
                                 </section>
                             )}
-                            
+
                             {/* 2. USERS (HIỂN THỊ KHI CÓ KẾT QUẢ) */}
                             {results.users.length > 0 && (
                                 <section>
@@ -250,7 +244,7 @@ export function Search() {
                                                 {/* Button Follow */}
                                                 <button
                                                     onClick={(e) => {
-                                                        e.stopPropagation(); 
+                                                        e.stopPropagation();
                                                         handleFollow(u.username);
                                                     }}
                                                     className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all transform active:scale-95 ${
@@ -313,16 +307,6 @@ export function Search() {
                     )}
                 </main>
             </div>
-
-            <PlayerBar
-                currentSong={currentSong.title}
-                artist={currentSong.artist}
-                audioUrl={currentSong.audioUrl}
-                cover={currentSong.cover}
-                onPlayingChange={setIsPlaying}
-                playlist={results.songs}
-                onPlaySong={handlePlaySong}
-            />
         </div>
     );
 }

@@ -28,7 +28,7 @@ def voice_command_view(request):
                 temp_audio_path,
                 fp16=False,
                 language='vi',
-                initial_prompt="Mở nhạc, Sơn Tùng MTP, Đen Vâu, dừng lại, bài hát"
+                initial_prompt="Mở nhạc, Sơn Tùng MTP, Đen Vâu, bài hát"
             )
             text_result = result['text'].strip()
 

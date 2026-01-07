@@ -1,13 +1,14 @@
+# server/music/admin.py
 from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import Count
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import display
-from .models import Artist, Album, Song, Playlist, PlaylistSong
-from django.contrib import admin
-from unfold.admin import ModelAdmin
-from django.utils.html import format_html
+# 1. IMPORT THÊM "Comment"
+from .models import Artist, Album, Song, Playlist, PlaylistSong, AlbumSong, Comment
 
+
+# --- 1. ARTIST ADMIN ---
 @admin.register(Artist)
 class ArtistAdmin(ModelAdmin):
     list_display = ('name', 'song_count', 'created_at')
@@ -15,11 +16,22 @@ class ArtistAdmin(ModelAdmin):
     ordering = ('-song_count',)
 
 
+# --- 2. ALBUM ADMIN ---
+class AlbumSongInline(TabularInline):
+    model = AlbumSong
+    extra = 1
+    tab = True
+    autocomplete_fields = ['song']
+    exclude = ('order',)
+
+
 @admin.register(Album)
 class AlbumAdmin(ModelAdmin):
     list_display = ('title', 'get_artists', 'release_date', 'song_count')
     list_filter = ('artists',)
     search_fields = ('title', 'artists__name')
+    autocomplete_fields = ['artists']
+    inlines = [AlbumSongInline]
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -34,13 +46,35 @@ class AlbumAdmin(ModelAdmin):
         return ", ".join([a.name for a in obj.artists.all()])
 
 
+# --- 3. CONFIG BÌNH LUẬN TRONG SONG (MỚI) ---
+class CommentInline(TabularInline):
+    model = Comment
+    extra = 0  # Không hiển thị dòng trống thừa
+    tab = True  # Gom vào tab riêng cho gọn (Tính năng của Unfold)
+
+    # Các trường hiển thị
+    fields = ('user', 'content', 'created_at')
+
+    # Chỉ đọc thời gian (không cho sửa ngày comment)
+    readonly_fields = ('created_at',)
+
+    # Cho phép tìm user nhanh nếu danh sách user lớn
+    autocomplete_fields = ['user']
+
+
+# --- 4. SONG ADMIN ---
 @admin.register(Song)
 class SongAdmin(ModelAdmin):
-    list_display = ('title_display', 'get_artists', 'album', 'duration_fmt', 'views_badge')
-    list_filter = ('artists', 'album')
+    list_display = ('title_display', 'get_artists', 'get_albums', 'duration_fmt', 'views_badge')
+    list_filter = ('artists', 'albums')
     search_fields = ('title', 'artists__name')
     readonly_fields = ('views',)
     list_per_page = 20
+    autocomplete_fields = ['artists']
+    ordering = ('-views',)
+
+    # THÊM "CommentInline" VÀO ĐÂY
+    inlines = [CommentInline]
 
     @display(description="Tên bài hát", ordering='title')
     def title_display(self, obj):
@@ -49,6 +83,10 @@ class SongAdmin(ModelAdmin):
     @display(description="Nghệ sĩ")
     def get_artists(self, obj):
         return ", ".join([a.name for a in obj.artists.all()])
+
+    @display(description="Album")
+    def get_albums(self, obj):
+        return ", ".join([a.title for a in obj.albums.all()])
 
     @display(description="Lượt nghe", label=True, ordering='views')
     def views_badge(self, obj):
@@ -62,16 +100,20 @@ class SongAdmin(ModelAdmin):
         return f"{m}:{s:02d}"
 
 
+# --- 5. PLAYLIST ADMIN ---
 class PlaylistSongInline(TabularInline):
     model = PlaylistSong
     extra = 1
     tab = True
+    autocomplete_fields = ['song']
+    exclude = ('order',)
 
 
 @admin.register(Playlist)
 class PlaylistAdmin(ModelAdmin):
     list_display = ('title', 'user', 'is_public_badge', 'song_count')
     search_fields = ('title', 'user__username')
+    autocomplete_fields = ['user']
     inlines = [PlaylistSongInline]
 
     def get_queryset(self, request):
