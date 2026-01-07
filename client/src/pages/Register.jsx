@@ -20,6 +20,7 @@ export function Register() {
     const [otp, setOtp] = useState("");
     const [timeLeft, setTimeLeft] = useState(0); 
     const [isActive, setIsActive] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Thêm trạng thái đồng ý điều khoản
     const [agreeTerms, setAgreeTerms] = useState(false);
@@ -43,6 +44,8 @@ export function Register() {
 
     const handleResendOtp = async () => {
         try {
+            if (isLoading) return; // Ngăn chặn nhiều lần nhấn
+            setIsLoading(true);
             await axios.post('http://localhost:8000/api/resend-otp/', { email: email, });
             setTimeLeft(60);
             setIsActive(true);
@@ -50,12 +53,15 @@ export function Register() {
                 console.error("Lỗi khi gửi lại OTP:", error);
                 const msg = error.response?.data?.message || "Có lỗi xảy ra khi gửi lại OTP";
                 alert(msg);
+            } finally {
+                setIsLoading(false);
             }
     }
 
     const handleFormSubmit = async (e) => { // Thêm async
         e.preventDefault();
-        
+        if (isLoading) return; // Ngăn chặn nhiều lần nhấn
+        setIsLoading(true);
         try {
             if (step === 'form') {
                 // --- GIAI ĐOẠN 1: GỌI API ĐĂNG KÝ ---
@@ -87,6 +93,8 @@ export function Register() {
         } catch (error) {
             console.error(error);
             alert(error.response?.data?.message || "Email sai định dạng hoặc đã có người sử dụng!");
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -141,22 +149,26 @@ export function Register() {
                             <button
                                 type="button"
                                 onClick={handleResendOtp}
-                                disabled={isActive}
+                                disabled={isActive || isLoading}
                                 className={`font-medium transition-colors ${
-                                    isActive 
+                                    isActive || isLoading
                                     ? 'text-neutral-500 cursor-not-allowed' 
                                     : 'text-green-500 hover:text-green-400 hover:underline cursor-pointer'
                                 }`}
                             >
-                                {isActive ? t('register.resend_otp_wait', { seconds: timeLeft }) : t('register.resend_otp')}
+                                {isLoading ? "Đang gửi..." : isActive 
+                                                                ? t('register.resend_otp_wait', { seconds: timeLeft }) 
+                                                                : t('register.resend_otp')
+                                }
                             </button>
                         </div>
                     )}
                     <button
-                        disabled={!isMatch}
+                        disabled={!isMatch || isLoading}
                         type="submit"
-                        className={`w-110 bg-green-600 hover:bg-green-700 text-white font-medium py-3.5 rounded-[5px] mt-6 mx-8 transition-colors ${!isMatch ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-                        {step === 'form' ? t('register.submit_register') : t('register.submit_confirm')}
+                        className={`w-110 bg-green-600 hover:bg-green-700 text-white font-medium py-3.5 rounded-[5px] mt-6 mx-8 transition-colors 
+                        ${!isMatch || isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                        {isLoading ? "Đang xử lí" : (step === 'form') ? t('register.submit_register') : t('register.submit_confirm')}
                     </button>
                     <div className="mt-10 mb-4 text-center text-xs text-neutral-400">
                         { step === 'form' ? (

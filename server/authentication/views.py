@@ -69,6 +69,29 @@ class GoogleLoginView(APIView):
 # --- Register ----
 class RegisterView(APIView):
     def post(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
+        exist_user = User.objects.filter(email=email).first()
+        if exist_user:
+            if not exist_user.is_active:
+                if password:
+                    exist_user.set_password(password)
+                    otp = str(random.randint(100000, 999999))
+                    exist_user.otp_code = otp
+                    exist_user.otp_created_at = timezone.now()
+                    exist_user.save()
+
+                    send_mail(
+                        'Mã xác thực đăng ký (Gửi lại)',
+                        f'Mã OTP của bạn là: {otp}',
+                        settings.EMAIL_HOST_USER,
+                        [exist_user.email],
+                        fail_silently=False,
+                    )
+                    print("Mã OTP sinh ra (Gửi lại):", otp)  # DEBUG
+                    return Response({"message": "Tài khoản chưa kích hoạt. OTP mới đã gửi!"}, status=200)
+                else:
+                    return Response({"message": "Email này đã được sử dụng bởi một tài khoản khác"}, status=400)
         # 1. Validate & Tạo User (Serializer làm việc này)
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -216,6 +239,7 @@ class ResetPasswordView(APIView):
             # 3. Đổi mật khẩu
             # Hàm set_password sẽ tự động mã hóa (Hash) mật khẩu mới
             user.set_password(new_password)
+            user.is_active = True  # Kích hoạt tài khoản nếu chưa kích hoạt
 
             # 4. Dọn dẹp OTP sau khi dùng xong
             user.otp_code = None

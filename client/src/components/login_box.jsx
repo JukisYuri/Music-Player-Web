@@ -1,7 +1,7 @@
 import { Eye, EyeOff, CircleUser, KeyRound } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-export function LoginInput({ showPassword, setShowPassword }) {
+export function LoginInput({ email, setEmail, password, setPassword, showPassword, setShowPassword }) {
     const { t } = useTranslation();
     return (
         <>
@@ -10,6 +10,8 @@ export function LoginInput({ showPassword, setShowPassword }) {
                 <label className="text-sm font-medium text-neutral-300 ml-1 flex flex-row gap-1 items-center"><CircleUser size={16} />{t('login.email_label')}</label>
                 <input 
                     type="text" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="w-full bg-neutral-800/50 border border-neutral-700/50 rounded-[5px] py-3.5 pl-2 pr-12 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 transition-all"
                     placeholder={t('login.email_placeholder')}
                     required
@@ -23,6 +25,8 @@ export function LoginInput({ showPassword, setShowPassword }) {
                 <div className="relative">
                     <input 
                         type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         className="w-full bg-neutral-800/50 border border-neutral-700/50 rounded-[5px] py-3.5 pl-3 pr-10 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 transition-all"
                         placeholder="*********" 
                         required

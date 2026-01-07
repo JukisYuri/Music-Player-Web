@@ -14,12 +14,14 @@ export function Login() {
     const { login } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
         try {
             const res = await axios.post('http://localhost:8000/api/login/', {
-                username: email, // SimpleJWT mặc định đòi key là 'username'
+                email: email,
                 password: password
             });
             // Lấy token từ kết quả trả về
@@ -71,7 +73,11 @@ export function Login() {
             >   
                 <form onSubmit={handleLoginSubmit}>
                     <div className='flex flex-col gap-4 mt-4 mb-6'>
-                    <LoginInput 
+                    <LoginInput
+                        email={email} 
+                        setEmail={setEmail} 
+                        password={password} 
+                        setPassword={setPassword}
                         showPassword={showPassword} 
                         setShowPassword={setShowPassword} 
                     />
