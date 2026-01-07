@@ -199,8 +199,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True  # Bảo mật đường truyền
-EMAIL_HOST_USER = 'yurichangirl752@gmail.com'
-EMAIL_HOST_PASSWORD = 'cieg xskp pojn vhzp'
+EMAIL_HOST_USER = os.getenv('EMAIL')  # Địa chỉ email gửi đi
+EMAIL_HOST_PASSWORD = os.getenv('APP_PASSWORD')  # Mật khẩu ứng dụng
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # --- CẤU HÌNH GIAO DIỆN UNFOLD ---

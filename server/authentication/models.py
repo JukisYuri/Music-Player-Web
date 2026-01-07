@@ -9,7 +9,9 @@ class User(AbstractUser):
     description = models.TextField(blank=True, null=True)
     otp_code = models.CharField(max_length=6, null=True, blank=True)
     otp_created_at = models.DateTimeField(null=True, blank=True)
-
+    # Tính năng follower/following
+    following = models.ManyToManyField('self', related_name='followers', symmetrical=False, blank=True)
+    
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'display_name']
     

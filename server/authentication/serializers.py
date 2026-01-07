@@ -46,12 +46,31 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 # Serializer dùng để hiển thị thông tin User (Profile/Context)
 class UserSerializer(serializers.ModelSerializer):
     is_in_google_social = serializers.SerializerMethodField()
-
+    followers_count = serializers.IntegerField(source='followers.count', read_only=True)
+    following_count = serializers.IntegerField(source='following.count', read_only=True)
+    following_ids = serializers.SerializerMethodField()
     class Meta:
         model = User
-        fields = ['id', 'username', 'display_name', 'email', 'is_active', 'date_joined', 'description', 'profile_image_url', 'is_in_google_social']
+        fields = ['id', 'username', 'display_name', 'email', 'is_active', 'date_joined', 'description', 'profile_image_url', 'is_in_google_social', 'followers_count', 'following_count', 'following_ids']
         read_only_fields = ['id', 'date_joined', 'is_active', 'email', 'username'] 
 
     # Logic check google social account
     def get_is_in_google_social(self, obj):
         return not obj.has_usable_password()
+    
+    def get_following_ids(self, obj):
+        return list(obj.following.values_list('id', flat=True))
+    
+class UserSearchSerializer(serializers.ModelSerializer):
+    is_following = serializers.SerializerMethodField()
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'display_name', 'profile_image_url', 'is_following']
+    
+    def get_is_following(self, obj):
+        # Lấy user đang thực hiện search
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            # Kiểm tra xem user tìm thấy (obj) có nằm trong list following của mình không
+            return request.user.following.filter(id=obj.id).exists()
+        return False

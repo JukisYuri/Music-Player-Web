@@ -15,7 +15,7 @@ import { MusicProvider, useMusic } from './context/MusicContext.jsx';
 import { SongDetail } from "./pages/SongDetail.jsx";
 import {PlaylistLibrary} from "./pages/PlaylistLibrary.jsx";
 import {ArtistDetail} from "./pages/ArtistDetail.jsx";
-
+import GuessRoute from './context/guess_route.jsx';
 
 const GlobalPlayer = () => {
     const { currentSong, isPlaying, setIsPlaying, playlist, handleNext, handlePrev, playSong, removeFromQueue } = useMusic();
@@ -49,6 +49,7 @@ const GlobalPlayer = () => {
     );
 };
 
+
 function App() {
   return (
     <MusicProvider>
@@ -57,9 +58,11 @@ function App() {
                 <Route path="/" element={<Navigate to="/index" replace />} />
 
                 {/* Định nghĩa đường dẫn */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route element={<GuessRoute />}>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                </Route>
                 <Route path="/index" element={<Index />} />
                 <Route path="/album/:id" element={<AlbumDetail />} />
                 <Route path="/profile" element={<Profile />} />
