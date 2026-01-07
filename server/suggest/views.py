@@ -1,8 +1,8 @@
 # server/suggest/views.py
 from django.views import View
 from django.http import JsonResponse
-from music.models import Song  # <--- Import Model từ app khác
-from .utils import jaccard_similarity  # Import logic từ utils cùng app
+from music.models import Song
+from .utils import jaccard_similarity
 
 
 class SearchSuggestionView(View):
@@ -15,10 +15,8 @@ class SearchSuggestionView(View):
 
         scored_songs = []
         for song in songs:
-            # Tính điểm Title
             score_title = jaccard_similarity(query, song.title)
 
-            # Tính điểm Artist
             artist_names = " ".join([a.name for a in song.artists.all()])
             score_artist = jaccard_similarity(query, artist_names)
 
@@ -27,13 +25,11 @@ class SearchSuggestionView(View):
             if final_score > 0.1:
                 scored_songs.append((final_score, song))
 
-        # Sắp xếp và lấy Top 5
         scored_songs.sort(key=lambda x: x[0], reverse=True)
         top_matches = scored_songs[:5]
 
         results = []
         for score, song in top_matches:
-            # Helper tạo URL ảnh (nếu cần)
             cover_url = ""
             if song.cover_image:
                 cover_url = request.build_absolute_uri(song.cover_image.url)
@@ -47,8 +43,3 @@ class SearchSuggestionView(View):
             })
 
         return JsonResponse(results, safe=False)
-
-
-from django.shortcuts import render
-
-# Create your views here.

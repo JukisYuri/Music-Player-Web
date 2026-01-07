@@ -13,6 +13,8 @@ import { Search} from "./pages/search.jsx";
 import { PlayerBar } from './components/player_bar.jsx';
 import { MusicProvider, useMusic } from './context/MusicContext.jsx';
 import { SongDetail } from "./pages/SongDetail.jsx";
+import {PlaylistLibrary} from "./pages/PlaylistLibrary.jsx";
+import {ArtistDetail} from "./pages/ArtistDetail.jsx";
 
 
 const GlobalPlayer = () => {
@@ -62,11 +64,13 @@ function App() {
                 <Route path="/album/:id" element={<AlbumDetail />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/onboarding" element={<OnBoarding />} />
-                <Route path="/playlist" element={<Playlist/>} />
+                <Route path="/playlist" element={<PlaylistLibrary/>} />
+                <Route path="/playlist/:id" element={<Playlist />} />
                 <Route path="/setting" element={<Setting/>} />
                 <Route path="/notification" element={<Notification/>} />
                 <Route path="/search" element={<Search />} />
                 <Route path="/song/:id" element={<SongDetail />} />
+                <Route path="/artist/:id" element={<ArtistDetail />} />
             </Routes>
 
             <GlobalPlayer />

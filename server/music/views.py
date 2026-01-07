@@ -1,21 +1,23 @@
 import json
 import os
-import base64
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.http import JsonResponse, FileResponse, Http404
-from django.shortcuts import get_object_or_404
 from django.urls import reverse
-from django.conf import settings
 from django.views.generic import TemplateView
-
-from .models import Song
 from authentication.models import User
-from .models import Album, AlbumSong, Comment
+from .models import Album, AlbumSong, Comment, Artist
 from django.db.models import Sum, Count
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import generics, status, permissions
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
+from .models import Playlist, Song, PlaylistSong
+from .serializers import PlaylistSerializer, CreatePlaylistSerializer, PlaylistDetailSerializer
+
 
 def stream_song(request, pk):
 
@@ -80,7 +82,7 @@ class TopAlbumsView(View):
         # Lấy top 10 album theo view
         albums = Album.objects.annotate(
             total_views=Sum('songs__views')
-        ).order_by('-total_views')[:10].prefetch_related('songs', 'artists')
+        ).order_by('-total_views')[:5].prefetch_related('songs', 'artists')
 
         data = []
         for album in albums:
@@ -101,6 +103,34 @@ class TopAlbumsView(View):
                 "artist": artists_str,
                 "cover": cover_url,
                 "total_views": album.total_views or 0
+            })
+
+        return JsonResponse(data, safe=False)
+
+class ArtistAlbumsView(View):
+    def get(self, request):
+        artists = Artist.objects.filter(songs__isnull=False).distinct().order_by('?')[:5]
+
+        data = []
+        for artist in artists:
+            cover_url = ""
+            if artist.avatar and "default" not in artist.avatar.url:
+                cover_url = request.build_absolute_uri(artist.avatar.url)
+            else:
+                # Nếu không có avatar thì lấy ảnh bài hát đầu tiên
+                first_song = artist.songs.first()
+                if first_song and first_song.cover_image:
+                    cover_url = request.build_absolute_uri(first_song.cover_image.url)
+
+            # Đếm số bài hát
+            song_count = artist.songs.count()
+
+            data.append({
+                "id": artist.id,
+                "title": artist.name,
+                "artist": f"{song_count} bài hát",
+                "cover": cover_url,
+                "is_artist": True
             })
 
         return JsonResponse(data, safe=False)
@@ -256,13 +286,11 @@ class StatisticsView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # 1. Lấy Top 10 bài hát (Views & Comments)
         top_songs = Song.objects.annotate(
             comment_count=Count('comments')
         ).order_by('-views')[:10]
 
-        # 2. Chuẩn bị dữ liệu JSON để vẽ Chart
-        # Cần chuyển thành JSON string để Javascript đọc được
+
         chart_data = {
             "labels": [s.title for s in top_songs],
             "views": [s.views for s in top_songs],
@@ -270,6 +298,128 @@ class StatisticsView(TemplateView):
         }
 
         context['chart_data'] = json.dumps(chart_data)
-        context['title'] = "Thống kê chi tiết"  # Tiêu đề trang Admin
+        context['title'] = "Thống kê chi tiết"
 
         return context
+
+# 1. API Lấy danh sách Playlist & Tạo mới (DÙNG USER ID)
+class MyPlaylistListView(generics.ListCreateAPIView):
+    serializer_class = PlaylistSerializer
+
+    def get_queryset(self):
+        user_id = self.request.query_params.get('user_id')
+        if user_id:
+            return Playlist.objects.filter(user_id=user_id).order_by('-created_at')
+        return Playlist.objects.none()
+
+    def create(self, request, *args, **kwargs):
+        # Lấy user_id từ body gửi lên
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return Response({"message": "Thiếu user_id"}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            user = User.objects.get(pk=user_id)
+            serializer.save(user=user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except User.DoesNotExist:
+            return Response({"message": "User không tồn tại"}, status=status.HTTP_404_NOT_FOUND)
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return CreatePlaylistSerializer
+        return PlaylistSerializer
+
+
+# 2. API Thêm bài hát vào Playlist (DÙNG USER ID)
+class AddSongToPlaylistView(APIView):
+
+    def post(self, request, playlist_id, song_id):
+        user_id = request.data.get('user_id')  # Lấy ID từ body
+
+        if not user_id:
+            return Response({"message": "Thiếu user_id"}, status=status.HTTP_400_BAD_REQUEST)
+
+        playlist = get_object_or_404(Playlist, id=playlist_id, user_id=user_id)
+        song = get_object_or_404(Song, id=song_id)
+
+        if PlaylistSong.objects.filter(playlist=playlist, song=song).exists():
+            return Response({"message": "Bài hát này đã có trong playlist"}, status=status.HTTP_400_BAD_REQUEST)
+
+        PlaylistSong.objects.create(playlist=playlist, song=song)
+        return Response({"message": "Đã thêm thành công", "status": "success"}, status=status.HTTP_200_OK)
+
+
+class PlaylistDetailView(generics.RetrieveAPIView):
+    queryset = Playlist.objects.all()
+    serializer_class = PlaylistDetailSerializer
+    permission_classes = []
+    lookup_field = 'pk'
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        if not instance.is_public:
+            request_user_id = request.query_params.get('user_id')
+
+            if str(instance.user.id) != str(request_user_id):
+                return Response(
+                    {"detail": "Đây là playlist riêng tư. Bạn không có quyền truy cập."},
+                    status=403
+                )
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+
+class ArtistDetailView(View):
+    def get(self, request, pk):
+        # Lấy nghệ sĩ theo ID
+        artist = get_object_or_404(Artist, pk=pk)
+
+        # Lấy tất cả bài hát của nghệ sĩ này
+        songs = artist.songs.all().order_by('-created_at')  # Sắp xếp bài mới nhất
+
+        # Chuẩn bị thông tin Header (giả lập cấu trúc giống Playlist/Album để tái sử dụng UI)
+        cover_url = ""
+        if artist.avatar and "default" not in artist.avatar.url:
+            cover_url = request.build_absolute_uri(artist.avatar.url)
+        elif songs.exists() and songs.first().cover_image:
+            cover_url = request.build_absolute_uri(songs.first().cover_image.url)
+
+        # Danh sách bài hát
+        songs_data = []
+        for song in songs:
+            # Helper tạo URL ảnh/audio
+            s_cover = request.build_absolute_uri(song.cover_image.url) if song.cover_image else ""
+            s_audio = request.build_absolute_uri(reverse('stream-song', args=[song.id]))
+
+            # Lấy tên các nghệ sĩ thể hiện bài này
+            s_artists = ", ".join([a.name for a in song.artists.all()])
+
+            m = song.duration // 60
+            s = song.duration % 60
+
+            songs_data.append({
+                "id": song.id,
+                "title": song.title,
+                "artist": s_artists,
+                "cover": s_cover,  # Key chuẩn cho Frontend
+                "audioUrl": s_audio,  # Key chuẩn cho Frontend
+                "duration": f"{m}:{s:02d}",
+                "views": song.views
+            })
+
+        response_data = {
+            "id": artist.id,
+            "title": artist.name,  # Tên Playlist = Tên Nghệ sĩ
+            "cover_image": cover_url,  # Ảnh bìa
+            "user_name": "Nghệ sĩ",  # Người tạo
+            "is_public": True,
+            "songs": songs_data  # Danh sách bài hát
+        }
+
+        return JsonResponse(response_data)

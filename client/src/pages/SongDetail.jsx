@@ -18,8 +18,18 @@ import { HeaderBar } from '../components/header_bar.jsx';
 import { Sidebar } from '../components/sidebar.jsx';
 import { useMusic } from '../context/MusicContext.jsx';
 import { AddToPlaylistModal } from '../components/playlist_modal.jsx';
+import {useAuth} from "../context/auth_context.jsx";
 
 // Component Sóng nhạc
+const PlayingEqualizerBlack = () => (
+    <div className="flex items-end gap-0.5 h-4 w-4 justify-center">
+        <div className="w-[3px] bg-black animate-[music-bar_0.5s_ease-in-out_infinite]"></div>
+        <div className="w-[3px] bg-black animate-[music-bar_0.7s_ease-in-out_infinite_0.1s]"></div>
+        <div className="w-[3px] bg-black animate-[music-bar_0.4s_ease-in-out_infinite_0.2s]"></div>
+        <style>{`@keyframes music-bar { 0%, 100% { height: 30%; } 50% { height: 100%; } }`}</style>
+    </div>
+);
+
 const PlayingEqualizer = () => (
     <div className="flex items-end gap-0.5 h-4 w-4 justify-center">
         <div className="w-[3px] bg-green-500 animate-[music-bar_0.5s_ease-in-out_infinite]"></div>
@@ -46,6 +56,8 @@ export function SongDetail() {
     const [likedSongs, setLikedSongs] = useState(new Set());
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
     const [selectedSongToAdd, setSelectedSongToAdd] = useState(null);
+
+     const handleSongClick = (song) => { navigate(`/song/${song.id}`); };
 
     // FETCH DỮ LIỆU BÀI HÁT & BÌNH LUẬN
     useEffect(() => {
@@ -182,7 +194,7 @@ export function SongDetail() {
 
                             <div className="flex items-center gap-4 mt-6">
                                 <button onClick={handlePlayMainSong} className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center hover:scale-105 hover:bg-green-400 transition-all shadow-lg text-black">
-                                    {isMainActive && isPlaying ? <PlayingEqualizer /> : <Play size={28} fill="currentColor" className="ml-1" />}
+                                    {isMainActive && isPlaying ? <PlayingEqualizerBlack /> : <Play size={28} fill="currentColor" className="ml-1" />}
                                 </button>
                                 <button onClick={() => toggleLike(songInfo.id)} className={`p-3 rounded-full border border-neutral-600 hover:border-white transition-colors ${likedSongs.has(songInfo.id) ? 'text-green-500' : 'text-neutral-400'}`}>
                                     <Heart size={24} fill={likedSongs.has(songInfo.id) ? "currentColor" : "none"} />
@@ -219,7 +231,9 @@ export function SongDetail() {
                                                             )}
                                                         </div>
                                                         <div>
-                                                            <p className={`font-medium ${isActive ? 'text-green-500' : 'text-white'}`}>{song.title}</p>
+                                                            <p
+                                                                onClick={(e) => {e.stopPropagation(); handleSongClick(song);}}
+                                                                className={`font-medium ${isActive ? 'text-green-500' : 'text-white'}`}>{song.title}</p>
                                                             <p className="text-sm text-neutral-400">{song.artist}</p>
                                                         </div>
                                                     </div>

@@ -1,4 +1,5 @@
 # models.py
+from django.conf import settings
 from django.db import models
 from django.contrib.auth import get_user_model
 
@@ -60,8 +61,8 @@ class AlbumSong(models.Model):
 
 
 class Playlist(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='playlists')
     title = models.CharField(max_length=255)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='playlists')
     description = models.TextField(blank=True, null=True)
     cover_image = models.ImageField(upload_to='playlists/', default='playlists/default.jpg')
     is_public = models.BooleanField(default=True)
