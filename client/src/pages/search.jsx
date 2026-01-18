@@ -229,7 +229,7 @@ export function Search() {
                                                 {/* Avatar */}
                                                 <div className="w-32 h-32 rounded-full overflow-hidden mb-4 shadow-lg border-2 border-neutral-800 group-hover:border-neutral-600 transition-colors">
                                                     {u.profile_image_url ? (
-                                                        <img src={`http://127.0.0.1:8000${u.profile_image_url}`} alt={u.username} className="w-full h-full object-cover"/>
+                                                        <img src={`${u.profile_image_url}`} alt={u.username} className="w-full h-full object-cover"/>
                                                     ) : (
                                                         <div className="bg-neutral-700 w-full h-full flex items-center justify-center">
                                                             <User size={48} className="text-neutral-400"/>
@@ -247,7 +247,7 @@ export function Search() {
                                                         e.stopPropagation();
                                                         handleFollow(u.username);
                                                     }}
-                                                    className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all transform active:scale-95 ${
+                                                    className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all transform active:scale-95 cursor-pointer ${
                                                         u.is_following 
                                                         ? 'bg-transparent border border-neutral-500 text-white hover:border-white' 
                                                         : 'bg-white text-black hover:bg-neutral-200'

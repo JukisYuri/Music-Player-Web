@@ -3,6 +3,8 @@ from authentication.views import (
     GoogleLoginView,
     UpdateProfileView,
     UserProfileView,
+    PublicUserProfileView,
+    NotificationListView,
     RegisterView,
     VerifyOTPView,
     ForgotPasswordView,
@@ -35,6 +37,8 @@ urlpatterns = [
     # User Profile, OnBoarding
     path('user/update-profile/', UpdateProfileView.as_view(), name='update-profile'),
     path('user/me/', UserProfileView.as_view(), name='user-me'),
+    path('user/profile/<str:username>/', PublicUserProfileView.as_view(), name='public-user-profile'),
+    path('notifications/', NotificationListView.as_view(), name='notifications'),
 
     # Follow/Unfollow User
     path('user/search/', SearchUserView.as_view(), name='user-search'),

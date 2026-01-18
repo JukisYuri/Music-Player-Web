@@ -6,7 +6,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.parsers import MultiPartParser, FormParser
-from .serializers import UserSerializer, UserUpdateSerializer, RegisterSerializer
+from .serializers import UserSerializer, UserUpdateSerializer, RegisterSerializer, PublicProfileSerializer, NotificationSerializer
+from .models import Notification
 import requests
 import uuid
 import random
@@ -278,6 +279,21 @@ class UserProfileView(generics.RetrieveAPIView):
     def get_object(self):
         return self.request.user
     
+class PublicUserProfileView(generics.RetrieveAPIView):
+    serializer_class = PublicProfileSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'username' # Tìm theo username trên URL
+    queryset = User.objects.all()
+
+# 2. API lấy danh sách thông báo
+class NotificationListView(ListAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Lấy thông báo gửi tới mình (người nhận là mình)
+        return Notification.objects.filter(receiver=self.request.user)
+    
 # ============================================================================
 # Search Users
 class SearchUserView(ListAPIView):
@@ -297,27 +313,54 @@ class FollowUserView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, username):
-        # Tìm người muốn follow
         target_user = get_object_or_404(User, username=username)
         current_user = request.user
 
         if current_user == target_user:
             return Response({"message": "Không thể tự follow chính mình"}, status=400)
 
-        # Logic Toggle Follow / Unfollow
+        # Kiểm tra xem đang follow hay không
         if current_user.following.filter(id=target_user.id).exists():
+            # --- TRƯỜNG HỢP HỦY FOLLOW (UNFOLLOW) ---
             current_user.following.remove(target_user)
             is_following = False
             msg = "Đã hủy theo dõi"
+            
+            # [FIX] Xóa thông báo cũ để reset trạng thái
+            Notification.objects.filter(
+                sender=current_user, 
+                receiver=target_user, 
+                notification_type='follow'
+            ).delete()
+
         else:
+            # --- TRƯỜNG HỢP FOLLOW ---
             current_user.following.add(target_user)
             is_following = True
             msg = "Đã theo dõi"
+            
+            # [FIX] Dùng get_or_create để đảm bảo:
+            # 1. Nếu chưa có -> Tạo mới (created=True)
+            # 2. Nếu có rồi (do lỗi gì đó) -> Lấy cái cũ ra cập nhật lại thời gian
+            notif, created = Notification.objects.get_or_create(
+                sender=current_user,
+                receiver=target_user,
+                notification_type='follow',
+                defaults={
+                    'message': f"{current_user.display_name or current_user.username} đã bắt đầu theo dõi bạn."
+                }
+            )
+            
+            # Nếu thông báo đã tồn tại từ trước (trường hợp hiếm), ta cập nhật lại thời gian để nó nổi lên đầu
+            if not created:
+                notif.created_at = timezone.now()
+                notif.is_read = False # Đánh dấu là chưa đọc lại
+                notif.save()
 
         return Response({
             "message": msg,
-            "is_following": is_following, # Trả về trạng thái mới để React cập nhật nút bấm
-            "follower_count": target_user.followers.count() # Cập nhật lại số người theo dõi
+            "is_following": is_following, 
+            "follower_count": target_user.followers.count() 
         }, status=200)
     
 class UserFollowingListView(ListAPIView):
