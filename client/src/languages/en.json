@@ -51,7 +51,8 @@
     "notification": {
       "title": "Notifications",
       "description" : "The latest notifications will appear here",
-      "no_notification": "You currently have no notifications"
+      "no_notification": "You currently have no notifications",
+      "followed_you": "started following you"
     },
     "playlist": {
       "back_to_list": "Back to playlist",
@@ -156,6 +157,8 @@
       "is_researching": "Searching...",
       "top_results": "Top Results",
       "songs": "Songs",
-      "artists": "Artists"
+      "artists": "Artists",
+      "followed": "Followed",
+      "follow": "Follow"
     }
   }

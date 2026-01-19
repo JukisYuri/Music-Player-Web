@@ -3,6 +3,10 @@ from authentication.views import (
     GoogleLoginView,
     UpdateProfileView,
     UserProfileView,
+    PublicUserProfileView,
+    NotificationListView,
+    MarkNotificationReadView,
+    NotificationUnreadCountView,
     RegisterView,
     VerifyOTPView,
     ForgotPasswordView,
@@ -35,6 +39,12 @@ urlpatterns = [
     # User Profile, OnBoarding
     path('user/update-profile/', UpdateProfileView.as_view(), name='update-profile'),
     path('user/me/', UserProfileView.as_view(), name='user-me'),
+    path('user/profile/<str:username>/', PublicUserProfileView.as_view(), name='public-user-profile'),
+
+    # Notifications
+    path('notifications/', NotificationListView.as_view(), name='notifications'),
+    path('notifications/<int:pk>/read/', MarkNotificationReadView.as_view(), name='mark-notification-read'),
+    path('notifications/unread-count/', NotificationUnreadCountView.as_view(), name='notifications-unread-count'),
 
     # Follow/Unfollow User
     path('user/search/', SearchUserView.as_view(), name='user-search'),

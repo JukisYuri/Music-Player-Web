@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from .models import Notification
 
 User = get_user_model()
 
@@ -74,3 +75,33 @@ class UserSearchSerializer(serializers.ModelSerializer):
             # Kiểm tra xem user tìm thấy (obj) có nằm trong list following của mình không
             return request.user.following.filter(id=obj.id).exists()
         return False
+    
+class PublicProfileSerializer(serializers.ModelSerializer):
+    followers_count = serializers.IntegerField(source='followers.count', read_only=True)
+    following_count = serializers.IntegerField(source='following.count', read_only=True)
+    is_following = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'display_name', 'description', 'profile_image_url', 'followers_count', 'following_count', 'is_following']
+
+    # Kiểm tra người đang xem (request.user) có follow user này không
+    def get_is_following(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return request.user.following.filter(id=obj.id).exists()
+        return False
+    
+class NotificationSerializer(serializers.ModelSerializer):
+    sender_name = serializers.CharField(source='sender.display_name', read_only=True)
+    sender_username = serializers.CharField(source='sender.username', read_only=True)
+    sender_avatar = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Notification
+        fields = ['id', 'sender_username', 'sender_name', 'sender_avatar', 'notification_type', 'message', 'created_at', 'is_read']
+
+    def get_sender_avatar(self, obj):
+        if obj.sender.profile_image_url:
+            return obj.sender.profile_image_url.url
+        return None

@@ -65,7 +65,6 @@ function App() {
                 </Route>
                 <Route path="/index" element={<Index />} />
                 <Route path="/album/:id" element={<AlbumDetail />} />
-                <Route path="/profile" element={<Profile />} />
                 <Route path="/onboarding" element={<OnBoarding />} />
                 <Route path="/playlist" element={<PlaylistLibrary/>} />
                 <Route path="/playlist/:id" element={<Playlist />} />
@@ -74,6 +73,11 @@ function App() {
                 <Route path="/search" element={<Search />} />
                 <Route path="/song/:id" element={<SongDetail />} />
                 <Route path="/artist/:id" element={<ArtistDetail />} />
+                
+                {/* Route dành cho chính mình (URL: /profile) */}
+                <Route path="/profile" element={<Profile />} />
+                {/* Route dành cho xem người khác (URL: /profile/mizu) */}
+                <Route path="/profile/:username" element={<Profile />} />
             </Routes>
 
             <GlobalPlayer />

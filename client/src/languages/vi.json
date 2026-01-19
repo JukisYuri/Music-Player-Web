@@ -51,7 +51,8 @@
     "notification": {
       "title": "Thông báo",
       "description" : "Các thông báo mới nhất sẽ hiện ở đây",
-      "no_notification": "Hiện tại bạn chưa có thông báo nào"
+      "no_notification": "Hiện tại bạn chưa có thông báo nào",
+      "followed_you": "đã bắt đầu theo dõi bạn"
     },
     "playlist": {
       "back_to_list": "Quay lại danh sách phát",
@@ -156,6 +157,8 @@
       "is_researching": "Đang tìm kiếm...",
       "top_results": "Kết quả hàng đầu",
       "songs": "Bài hát",
-      "artists": "Nghệ sĩ"
+      "artists": "Nghệ sĩ",
+      "followed": "Đã theo dõi",
+      "follow": "Theo dõi"
     }
   }
