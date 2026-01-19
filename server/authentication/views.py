@@ -342,12 +342,12 @@ class FollowUserView(APIView):
 
         # Kiểm tra xem đang follow hay không
         if current_user.following.filter(id=target_user.id).exists():
-            # --- TRƯỜNG HỢP HỦY FOLLOW (UNFOLLOW) ---
+            # Trường hợp huỷ follow
             current_user.following.remove(target_user)
             is_following = False
             msg = "Đã hủy theo dõi"
             
-            # [FIX] Xóa thông báo cũ để reset trạng thái
+            # Xóa thông báo cũ để reset trạng thái
             Notification.objects.filter(
                 sender=current_user, 
                 receiver=target_user, 
@@ -360,9 +360,9 @@ class FollowUserView(APIView):
             is_following = True
             msg = "Đã theo dõi"
             
-            # [FIX] Dùng get_or_create để đảm bảo:
-            # 1. Nếu chưa có -> Tạo mới (created=True)
-            # 2. Nếu có rồi (do lỗi gì đó) -> Lấy cái cũ ra cập nhật lại thời gian
+            # Dùng get_or_create để đảm bảo:
+            # Nếu chưa có -> Tạo mới (created=True)
+            # Nếu có rồi -> Lấy cái cũ ra cập nhật lại thời gian
             notif, created = Notification.objects.get_or_create(
                 sender=current_user,
                 receiver=target_user,
@@ -372,10 +372,10 @@ class FollowUserView(APIView):
                 }
             )
             
-            # Nếu thông báo đã tồn tại từ trước (trường hợp hiếm), ta cập nhật lại thời gian để nó nổi lên đầu
+            # Nếu thông báo đã tồn tại từ trước cập nhật lại thời gian để nó nổi lên đầu
             if not created:
                 notif.created_at = timezone.now()
-                notif.is_read = False # Đánh dấu là chưa đọc lại
+                notif.is_read = False
                 notif.save()
 
         return Response({
