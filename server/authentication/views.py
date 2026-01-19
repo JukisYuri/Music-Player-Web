@@ -285,7 +285,8 @@ class PublicUserProfileView(generics.RetrieveAPIView):
     lookup_field = 'username' # Tìm theo username trên URL
     queryset = User.objects.all()
 
-# 2. API lấy danh sách thông báo
+# ============================================================================
+# API lấy danh sách thông báo
 class NotificationListView(ListAPIView):
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
@@ -293,6 +294,26 @@ class NotificationListView(ListAPIView):
     def get_queryset(self):
         # Lấy thông báo gửi tới mình (người nhận là mình)
         return Notification.objects.filter(receiver=self.request.user)
+    
+class MarkNotificationReadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        # Tìm thông báo theo ID (pk) và phải thuộc về người đang đăng nhập (receiver=request.user)
+        notification = get_object_or_404(Notification, pk=pk, receiver=request.user)
+        
+        notification.is_read = True
+        notification.save()
+        
+        return Response({"message": "Đã đánh dấu đã đọc"}, status=status.HTTP_200_OK)
+    
+class NotificationUnreadCountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Đếm số lượng record có receiver là mình và chưa đọc (is_read=False)
+        count = Notification.objects.filter(receiver=request.user, is_read=False).count()
+        return Response({"unread_count": count}, status=200)
     
 # ============================================================================
 # Search Users

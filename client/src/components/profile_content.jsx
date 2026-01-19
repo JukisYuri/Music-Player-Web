@@ -306,7 +306,7 @@ export function ProfileContent() {
                                             : 'bg-white text-black hover:bg-neutral-200'
                                         }`}>
                                         {displayUser.is_following ? <Check size={16}/> : <Plus size={16}/>}
-                                        {displayUser.is_following ? t('search.followed') || 'Đang theo dõi' : t('search.follow') || 'Theo dõi'}
+                                        {displayUser.is_following ? t('search.followed') : t('search.follow')}
                                     </button>
                                 )}
                                 

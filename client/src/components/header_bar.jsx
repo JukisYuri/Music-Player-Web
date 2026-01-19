@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, use } from 'react';
 import { useAuth } from '../context/auth_context.jsx';
 import { LogoutConfirmModal } from './logout_confirm_modal.jsx';
 import {
@@ -10,21 +10,25 @@ import {
     LogOut,
     UserCircle,
     Bell,
+    BellDot,
     Mic,
     Loader2,
     Square,
     X // Thêm icon X để xóa text
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 
 export function HeaderBar({ onLogoutClick }) {
     const { user, loading, logout } = useAuth();
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const location = useLocation();
 
     // --- State ---
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [hasUnread, setHasUnread] = useState(false);
 
     // State cho Voice
     const [isRecording, setIsRecording] = useState(false);
@@ -187,6 +191,29 @@ export function HeaderBar({ onLogoutClick }) {
         if (searchInputRef.current) searchInputRef.current.focus();
     };
 
+    const checkUnreadNotifications = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            const res = await axios.get('http://localhost:8000/api/notifications/unread-count/', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            // Nếu số lượng > 0 thì set true
+            setHasUnread(res.data.unread_count > 0);
+        } catch (error) {
+            console.error("Lỗi check notif:", error);
+        }
+    };
+
+    useEffect(() => {
+        checkUnreadNotifications();
+        // Polling: Tự động check mỗi 60 giây
+        const interval = setInterval(checkUnreadNotifications, 60000);
+        // Clear interval khi unmount
+        return () => clearInterval(interval);
+    }, [location.pathname]);
 
     return (
         <>
@@ -276,8 +303,18 @@ export function HeaderBar({ onLogoutClick }) {
                         )}
                     </div>
 
-                    <Link to="/notification" className="relative text-neutral-400 hover:text-green-400 transition-colors p-1">
-                        <Bell size={24} />
+                    <Link to="/notification" className="relative p-1 group">
+                        {hasUnread ? (
+                            <BellDot 
+                                size={24} 
+                                className="text-red-500 hover:text-red-400 transition-colors animate-pulse" 
+                            />
+                        ) : (
+                            <Bell 
+                                size={24} 
+                                className="text-neutral-400 group-hover:text-green-400 transition-colors" 
+                            />
+                        )}
                     </Link>
                 </div>
 

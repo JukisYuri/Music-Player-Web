@@ -31,7 +31,27 @@ export function NotificationContent() {
         fetchNotifications();
     }, []);
 
-    // Helper: Format thời gian (VD: 2 giờ trước)
+    const handleNotificationClick = async (notif) => {
+        navigate(`/profile/${notif.sender_username}`);
+        if (notif.is_read) return;
+
+        // Cập nhật State nội bộ ngay lập tức (để lần sau quay lại thấy đã đọc)
+        setNotifications(prev => prev.map(n => 
+            n.id === notif.id ? { ...n, is_read: true } : n
+        ));
+        try {
+            const token = localStorage.getItem('token');
+            if (token) {
+                await axios.post(`http://localhost:8000/api/notifications/${notif.id}/read/`, {}, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            }
+        } catch (error) {
+            console.error("Lỗi đánh dấu đã đọc:", error);
+        }
+    };
+
+    // Format thời gian (VD: 2 giờ/phút trước)
     const formatTime = (dateString) => {
         const date = new Date(dateString);
         const now = new Date();
@@ -46,7 +66,7 @@ export function NotificationContent() {
         return `${diffInDays} ngày trước`;
     };
 
-    // Helper: Xử lý link ảnh
+    // Xử lý link ảnh
     const getAvatarUrl = (path) => {
         if (!path) return null;
         if (path.startsWith('http')) return path;
@@ -68,7 +88,7 @@ export function NotificationContent() {
                         {notifications.map((notif) => (
                             <div 
                                 key={notif.id} 
-                                onClick={() => navigate(`/profile/${notif.sender_username}`)}
+                                onClick={() => handleNotificationClick(notif)}
                                 className="flex items-center gap-4 px-6 py-4 hover:bg-neutral-800/50 transition-colors cursor-pointer border-b border-neutral-800/50"
                             >
                                 {/* Avatar */}
@@ -89,11 +109,11 @@ export function NotificationContent() {
                                 {/* Content */}
                                 <div className="flex flex-col flex-1">
                                     <p className="text-sm text-white">
-                                        <span className="font-bold hover:underline">{notif.sender_name || `???`} ({notif.sender_username})</span>
+                                        <span className="font-bold hover:underline">{notif.sender_name || notif.sender_username}</span>
                                         <span className="text-neutral-300"> {t('notification.followed_you')}</span>
                                     </p>
                                     <p className="text-xs text-neutral-500 mt-1">
-                                        {formatTime(notif.created_at)}
+                                        {formatTime(notif.created_at)}, @{notif.sender_username}
                                     </p>
                                 </div>
 
