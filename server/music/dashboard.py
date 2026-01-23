@@ -18,9 +18,8 @@ def dashboard_callback(request, context):
     new_users = User.objects.filter(date_joined__gte=last_month).count()
 
     # 2. LẤY DỮ LIỆU TOP BÀI HÁT
-    top_views_songs = Song.objects.order_by('-views')[:10]
-
-    top_comments_songs = Song.objects.annotate(cmt_count=Count('comments')).order_by('-cmt_count')[:10]
+    top_views_songs = Song.objects.order_by('-views')[:15]
+    top_comments_songs = Song.objects.annotate(cmt_count=Count('comments')).order_by('-cmt_count')[:15]
 
     # 3. CHUẨN BỊ CONTEXT
     context.update({

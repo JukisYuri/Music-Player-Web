@@ -3,6 +3,8 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from unfold.admin import ModelAdmin
 from django.contrib.auth import get_user_model
 from django.utils.html import format_html
+
+from music.admin import ListeningHistoryInline, CommentInline
 from .models import User
 
 User = get_user_model()
@@ -23,6 +25,8 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
             'fields': ('display_name', 'description', 'profile_image_url')
         }),
     )
+
+    inlines = [ListeningHistoryInline, CommentInline]
 
     # Hiển thị ảnh đại diện dưới dạng hình thu nhỏ trong bảng
     def avatar_preview(self, obj):

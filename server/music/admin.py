@@ -4,8 +4,7 @@ from django.utils.html import format_html
 from django.db.models import Count
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import display
-# 1. IMPORT THÊM "Comment"
-from .models import Artist, Album, Song, Playlist, PlaylistSong, AlbumSong, Comment
+from .models import Artist, Album, Song, Playlist, PlaylistSong, AlbumSong, Comment, ListeningHistory
 
 
 # --- 1. ARTIST ADMIN ---
@@ -127,3 +126,21 @@ class PlaylistAdmin(ModelAdmin):
     @display(description="Trạng thái", boolean=True, ordering='is_public')
     def is_public_badge(self, obj):
         return obj.is_public
+
+@admin.register(ListeningHistory)
+class ListeningHistoryAdmin(ModelAdmin):
+    list_display = ('user', 'song_link', 'played_at')
+    list_filter = ('played_at', 'user')
+    search_fields = ('user__username', 'song__title')
+    readonly_fields = ('played_at',) # Lịch sử không nên cho phép sửa thời gian
+
+    @display(description="Bài hát")
+    def song_link(self, obj):
+        return obj.song.title
+
+class ListeningHistoryInline(admin.TabularInline):
+    tab = True
+    model = ListeningHistory
+    extra = 0
+    readonly_fields = ('song', 'played_at')
+    can_delete = False

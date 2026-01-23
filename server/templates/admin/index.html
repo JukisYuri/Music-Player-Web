@@ -18,22 +18,22 @@
   </div>
   {% endif %}
 
-  <div class="grid grid-cols-1 gap-6 lg:grid-cols-1">
+ <div class="grid grid-cols-1 gap-6 lg:grid-cols-1">
 
       <div class="p-6 bg-white border rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Top 10 Bài hát nghe nhiều nhất
+              Top 15 Bài hát nghe nhiều nhất
           </h2>
-          <div class="relative h-64">
+          <div class="relative h-[500px]">
               <canvas id="viewsChart"></canvas>
           </div>
       </div>
 
-      <div class="p-6 bg-white border rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+      <div class="p-6 bg-white border rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700 " >
           <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Top 10 Bài hát thảo luận nhiều nhất
+              Top 15 Bài hát thảo luận nhiều nhất
           </h2>
-          <div class="relative h-64">
+          <div class="relative h-[500px]">
               <canvas id="commentsChart"></canvas>
           </div>
       </div>
@@ -51,7 +51,7 @@
           // Cấu hình chung
           const commonOptions = {
               responsive: true,
-              maintainAspectRatio: false,
+              maintainAspectRatio: true,
               scales: {
                   y: { beginAtZero: true }
               }
@@ -83,7 +83,7 @@
                       data: commentsData.data,
                       backgroundColor: 'rgba(245, 158, 11, 0.6)', // Vàng cam
                       borderColor: 'rgb(245, 158, 11)',
-                      borderWidth: 1
+                      borderWidth: 1,
                   }]
               },
               options: commonOptions

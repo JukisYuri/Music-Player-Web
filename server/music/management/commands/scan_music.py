@@ -2,7 +2,6 @@ import os
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from music.models import Song, Artist
-# Đã xóa import Album nếu không dùng đến, hoặc giữ lại nếu file models.py bắt buộc
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3
 
