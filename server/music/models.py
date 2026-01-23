@@ -18,11 +18,17 @@ class Artist(models.Model):
 
 
 # --- Thay đổi chính ở đây ---
+class Genre(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
 
 class Song(models.Model):
     title = models.CharField(max_length=255)
     artists = models.ManyToManyField(Artist, related_name='songs', blank=True)
 
+    genres = models.ManyToManyField(Genre, related_name='songs', blank=True)
     audio_file = models.FileField(upload_to='songs/')
     cover_image = models.ImageField(upload_to='image/', blank=True, null=True)
     duration = models.IntegerField(default=0)
