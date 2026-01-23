@@ -3,9 +3,11 @@ from django.utils.html import format_html
 from django.db.models import Count
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import display
+import requests
 
+import json
 from sentiment.apps import SentimentConfig
-from .models import Artist, Album, Song, Playlist, PlaylistSong, AlbumSong, Comment, ListeningHistory
+from .models import Artist, Album, Song, Playlist, PlaylistSong, AlbumSong, Comment, ListeningHistory, Genre
 
 
 # --- 1. ARTIST ADMIN ---
@@ -127,10 +129,51 @@ class CommentInline(TabularInline):
     def confidence_fmt(self, obj):
         return f"{obj.confidence_score * 100:.1f}%" if obj.confidence_score else "-"
 
+def fetch_genres_from_api(file_path):
+    api_token = "499953db8d64d6955bbb933414176786"  # Thay bằng token của bạn
+    url = "https://api.audd.io/"
+    try:
+        with open(file_path, 'rb') as f:
+            files = {'file': f}
+            data = {'api_token': api_token, 'return': 'apple_music'}
+            response = requests.post(url, data=data, files=files, timeout=20)
+            result = response.json()
+            if result.get('status') == 'success' and result.get('result'):
+                apple_data = result['result'].get('apple_music')
+                if apple_data and apple_data.get('genreNames'):
+                    return apple_data['genreNames']
+    except Exception:
+        pass
+    return []
+
+
+# 2. Định nghĩa Admin Action
+@admin.action(description='Cập nhật thể loại bằng AI (Audd.io)')
+def update_song_genre_action(modeladmin, request, queryset):
+    success_count = 0
+    for song in queryset:
+        if not song.audio_file:
+            continue
+
+        # Lấy đường dẫn vật lý của file
+        file_path = song.audio_file.path
+        genre_names = fetch_genres_from_api(file_path)
+
+        if genre_names:
+            genre_objs = []
+            for name in genre_names:
+                g_obj, _ = Genre.objects.get_or_create(name=name)
+                genre_objs.append(g_obj)
+
+            # Cập nhật quan hệ Many-to-Many
+            song.genres.set(genre_objs)
+            success_count += 1
+
+    modeladmin.message_user(request, f"Đã cập nhật thể loại thành công cho {success_count} bài hát!")
 
 @admin.register(Song)
 class SongAdmin(ModelAdmin):
-    list_display = ('title_display', 'get_artists', 'get_albums', 'duration_fmt', 'views_badge')
+    list_display = ('title_display', 'get_artists', 'get_genres', 'duration_fmt', 'views_badge')
     list_filter = ('artists', 'albums','genres')
     search_fields = ('title', 'artists__name')
     readonly_fields = ('views',)
@@ -138,6 +181,7 @@ class SongAdmin(ModelAdmin):
     autocomplete_fields = ['artists']
     ordering = ('-views',)
     inlines = [CommentInline]
+    actions = [update_song_genre_action]
 
     @display(description="Tên bài hát", ordering='title')
     def title_display(self, obj):
@@ -196,6 +240,33 @@ class PlaylistAdmin(ModelAdmin):
         return obj.is_public
 
 
+
+
+class SongGenreInline(TabularInline):
+    model = Song.genres.through # Sử dụng bảng trung gian của ManyToMany
+    verbose_name = "Bài hát"
+    verbose_name_plural = "Danh sách bài hát thuộc thể loại này"
+    extra = 0
+    tab = True # QUAN TRỌNG: Unfold sẽ hiển thị cái này thành một Tab riêng
+    autocomplete_fields = ['song']
+
+
+@admin.register(Genre)
+class GenreAdmin(ModelAdmin):
+    list_display = ('name', 'song_count_display')
+    search_fields = ('name',)
+
+    # 2. Thêm Inline vào GenreAdmin
+    inlines = [SongGenreInline]
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        queryset = queryset.annotate(songs_count_annotated=Count('songs'))
+        return queryset
+
+    @display(description="Số lượng bài hát", ordering='songs_count_annotated')
+    def song_count_display(self, obj):
+        return obj.songs_count_annotated
 
 
 
