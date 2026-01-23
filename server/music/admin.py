@@ -131,7 +131,7 @@ class CommentInline(TabularInline):
 @admin.register(Song)
 class SongAdmin(ModelAdmin):
     list_display = ('title_display', 'get_artists', 'get_albums', 'duration_fmt', 'views_badge')
-    list_filter = ('artists', 'albums')
+    list_filter = ('artists', 'albums','genres')
     search_fields = ('title', 'artists__name')
     readonly_fields = ('views',)
     list_per_page = 20
@@ -150,6 +150,10 @@ class SongAdmin(ModelAdmin):
     @display(description="Album")
     def get_albums(self, obj):
         return ", ".join([a.title for a in obj.albums.all()])
+
+    @display(description="Thể loại")
+    def get_genres(self, obj):
+        return ", ".join([g.name for g in obj.genres.all()])
 
     @display(description="Lượt nghe", label=True, ordering='views')
     def views_badge(self, obj):
