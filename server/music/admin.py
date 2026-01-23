@@ -49,7 +49,7 @@ class AlbumAdmin(ModelAdmin):
         return ", ".join([a.name for a in obj.artists.all()])
 
 
-@admin.action(description='Phân loại lại cảm xúc bằng AI')
+@admin.action(description='Phân loại lại cảm xúc bằng LSTM')
 def analyze_sentiment_action(modeladmin, request, queryset):
     """Action để chạy AI cho các comment được chọn trong trang Admin"""
     predictor = SentimentConfig.predictor
