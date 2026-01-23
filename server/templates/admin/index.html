@@ -2,6 +2,7 @@
 {% load i18n %}
 
 {% block content %}
+  {# --- KPI CARDS --- #}
   {% if kpi %}
   <div class="grid grid-cols-1 gap-4 mb-8 md:grid-cols-2 lg:grid-cols-4">
       {% for item in kpi %}
@@ -18,23 +19,24 @@
   </div>
   {% endif %}
 
- <div class="grid grid-cols-1 gap-6 lg:grid-cols-1">
+  {# --- CHARTS SECTION --- #}
+ <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 
       <div class="p-6 bg-white border rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
               Top 15 Bài hát nghe nhiều nhất
           </h2>
-          <div class="relative h-[500px]">
+          <div class="relative h-[400px]">
               <canvas id="viewsChart"></canvas>
           </div>
       </div>
 
       <div class="p-6 bg-white border rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700 " >
           <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Top 15 Bài hát thảo luận nhiều nhất
+              Phân tích cảm xúc bình luận (Top 15)
           </h2>
-          <div class="relative h-[500px]">
-              <canvas id="commentsChart"></canvas>
+          <div class="relative h-[400px]">
+              <canvas id="sentimentChart"></canvas>
           </div>
       </div>
 
@@ -44,20 +46,16 @@
   <script>
       document.addEventListener('DOMContentLoaded', function() {
 
-          // Lấy dữ liệu từ Backend
+          // Lấy dữ liệu
           const viewsData = JSON.parse('{{ chart_views_data|safe }}');
-          const commentsData = JSON.parse('{{ chart_comments_data|safe }}');
+          const sentimentData = JSON.parse('{{ chart_sentiment_data|safe }}');
 
-          // Cấu hình chung
           const commonOptions = {
               responsive: true,
-              maintainAspectRatio: true,
-              scales: {
-                  y: { beginAtZero: true }
-              }
+              maintainAspectRatio: false,
           };
 
-          // Vẽ Chart 1: Views
+          // 1. Chart Views (Cột đơn)
           new Chart(document.getElementById('viewsChart'), {
               type: 'bar',
               data: {
@@ -65,28 +63,57 @@
                   datasets: [{
                       label: 'Lượt nghe',
                       data: viewsData.data,
-                      backgroundColor: 'rgba(16, 185, 129, 0.6)', // Xanh lá
-                      borderColor: 'rgb(16, 185, 129)',
+                      backgroundColor: 'rgba(59, 130, 246, 0.6)', // Blue
+                      borderColor: 'rgb(59, 130, 246)',
                       borderWidth: 1
                   }]
               },
               options: commonOptions
           });
 
-          // Vẽ Chart 2: Comments
-          new Chart(document.getElementById('commentsChart'), {
-              type: 'bar', // Hoặc đổi thành 'pie', 'line' tùy thích
+          // 2. Chart Sentiment (Cột chồng - Stacked Bar)
+          new Chart(document.getElementById('sentimentChart'), {
+              type: 'bar',
               data: {
-                  labels: commentsData.labels,
-                  datasets: [{
-                      label: 'Bình luận',
-                      data: commentsData.data,
-                      backgroundColor: 'rgba(245, 158, 11, 0.6)', // Vàng cam
-                      borderColor: 'rgb(245, 158, 11)',
-                      borderWidth: 1,
-                  }]
+                  labels: sentimentData.labels,
+                  datasets: [
+                      {
+                          label: 'Tích cực',
+                          data: sentimentData.pos,
+                          backgroundColor: 'rgba(34, 197, 94, 0.7)', // Green
+                          stack: 'Stack 0',
+                      },
+                      {
+                          label: 'Trung tính',
+                          data: sentimentData.neu,
+                          backgroundColor: 'rgba(156, 163, 175, 0.7)', // Gray
+                          stack: 'Stack 0',
+                      },
+                      {
+                          label: 'Tiêu cực',
+                          data: sentimentData.neg,
+                          backgroundColor: 'rgba(239, 68, 68, 0.7)', // Red
+                          stack: 'Stack 0',
+                      }
+                  ]
               },
-              options: commonOptions
+              options: {
+                  ...commonOptions,
+                  scales: {
+                      x: {
+                          stacked: true, // Quan trọng: Để các cột chồng lên nhau
+                          ticks: { autoSkip: false, maxRotation: 90, minRotation: 45 }
+                      },
+                      y: {
+                          stacked: true,
+                          beginAtZero: true
+                      }
+                  },
+                  interaction: {
+                      mode: 'index',
+                      intersect: false,
+                  },
+              }
           });
       });
   </script>
