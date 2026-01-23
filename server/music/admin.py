@@ -4,7 +4,8 @@ from django.db.models import Count
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import display
 import requests
-
+from sentiment2 import apps
+from sentiment2.admin import analyze_phobert_sentiment
 import json
 from sentiment.apps import SentimentConfig
 from .models import Artist, Album, Song, Playlist, PlaylistSong, AlbumSong, Comment, ListeningHistory, Genre
@@ -47,6 +48,7 @@ class AlbumAdmin(ModelAdmin):
     def get_artists(self, obj):
         return ", ".join([a.name for a in obj.artists.all()])
 
+
 @admin.action(description='Phân loại lại cảm xúc bằng AI')
 def analyze_sentiment_action(modeladmin, request, queryset):
     """Action để chạy AI cho các comment được chọn trong trang Admin"""
@@ -73,7 +75,7 @@ class CommentAdmin(ModelAdmin):
     list_per_page = 20
     readonly_fields = ('created_at', 'confidence_score')
 
-    actions = [analyze_sentiment_action]
+    actions = [analyze_phobert_sentiment,analyze_sentiment_action]
 
     @display(description="Nội dung")
     def content_short(self, obj):
