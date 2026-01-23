@@ -9,6 +9,39 @@
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
       <link href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
   </head>
+  <style>
+        .custom-scrollbar {
+            /* Hỗ trợ Firefox: mỏng và màu tối */
+            scrollbar-width: thin;
+            scrollbar-color: #262626 transparent;
+        }
+
+        /* Cho Chrome, Edge và Safari */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;  /* ĐỘ RỘNG THANH ĐỨNG - Oleny chỉnh ở đây */
+            height: 4px; /* Độ cao thanh ngang */
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #333; /* Màu xám trầm ban đầu */
+            border-radius: 20px;
+            border: 1px solid transparent; /* Tạo khoảng trống nhẹ */
+        }
+
+        /* Khi hover vào vùng chứa, thanh cuộn sáng lên một chút */
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+            background-color: #444;
+        }
+
+        /* Khi hover trực tiếp vào thanh cuộn, hiện màu xanh Spotify */
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: #1db954;
+        }
+  </style>
   <body>
     <div id="root"></div>
     <script type="module" src="src/main.jsx"></script>

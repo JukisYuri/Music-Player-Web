@@ -1,7 +1,7 @@
 import json
 import os
 import random
-
+from django.db.models import Max, Count
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -11,7 +11,7 @@ from django.views.generic import TemplateView
 from rest_framework.permissions import IsAuthenticated
 
 from authentication.models import User
-from .models import Album, AlbumSong, Comment, Artist, ListeningHistory
+from .models import Album, AlbumSong, Comment, Artist, ListeningHistory, Genre
 from django.db.models import Sum, Count
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, status, permissions
@@ -479,3 +479,76 @@ class ListeningHistoryListView(generics.ListAPIView):
             # Trả về 20 bài gần nhất
             return ListeningHistory.objects.filter(user_id=user_id).order_by('-played_at')[:20]
         return ListeningHistory.objects.none()
+
+
+# server/music/views.py
+from django.db.models import Max, Count
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.urls import reverse
+from .models import Song, Genre, Artist, ListeningHistory
+
+
+class DiscoveryMusicView(APIView):
+    permission_classes = []
+
+    def get(self, request):
+        user_id = request.query_params.get('user_id')
+        if not user_id:
+            return Response({"message": "Thiếu user_id"}, status=400)
+
+        # 1. Lấy 20 bài vừa nghe duy nhất (Không trùng lặp bài hát)
+        recent_entries = ListeningHistory.objects.filter(user_id=user_id) \
+            .values('song_id') \
+            .annotate(latest_play=Max('played_at')) \
+            .order_by('-latest_play')[:20]
+
+        recent_ids = [item['song_id'] for item in recent_entries]
+
+        # Lấy danh sách bài hát và giữ đúng thứ tự thời gian
+        recent_songs = Song.objects.filter(id__in=recent_ids)
+        recent_songs_sorted = sorted(recent_songs, key=lambda s: recent_ids.index(s.id))
+        recent_songs_data = [self.format_song(s, request) for s in recent_songs_sorted]
+
+        # 2. Chia nhỏ gợi ý theo Top 3 Thể loại hay nghe nhất
+        top_genres = Genre.objects.filter(songs__played_by__user_id=user_id) \
+            .annotate(usage=Count('id')).order_by('-usage')[:3]
+
+        genre_recs = []
+        for genre in top_genres:
+            # Lấy 10 bài cùng thể loại, loại bỏ bài vừa nghe để tránh trùng
+            songs = Song.objects.filter(genres=genre).exclude(id__in=recent_ids).distinct().order_by('?')[:10]
+            if songs.exists():
+                genre_recs.append({
+                    "genre_name": genre.name,
+                    "songs": [self.format_song(s, request) for s in songs]
+                })
+
+        # 3. Chia nhỏ gợi ý theo Top 3 Nghệ sĩ hay nghe nhất
+        top_artists = Artist.objects.filter(songs__played_by__user_id=user_id) \
+            .annotate(usage=Count('id')).order_by('-usage')[:3]
+
+        artist_recs = []
+        for artist in top_artists:
+            # Lấy 10 bài của nghệ sĩ, loại bỏ bài vừa nghe
+            songs = Song.objects.filter(artists=artist).exclude(id__in=recent_ids).distinct().order_by('?')[:10]
+            if songs.exists():
+                artist_recs.append({
+                    "artist_name": artist.name,
+                    "songs": [self.format_song(s, request) for s in songs]
+                })
+
+        return Response({
+            "recently_played": recent_songs_data or [],
+            "genres_grouped": genre_recs or [],
+            "artists_grouped": artist_recs or [],
+        })
+
+    def format_song(self, s, request):
+        cover_url = request.build_absolute_uri(s.cover_image.url) if s.cover_image else ""
+        audio_url = request.build_absolute_uri(reverse('stream-song', args=[s.id]))
+        artists = ", ".join([a.name for a in s.artists.all()])
+        return {
+            "id": s.id, "title": s.title, "artist": artists,
+            "cover": cover_url, "audioUrl": audio_url, "views": s.views
+        }

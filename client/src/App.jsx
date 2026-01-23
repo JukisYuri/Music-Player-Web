@@ -16,6 +16,7 @@ import { SongDetail } from "./pages/SongDetail.jsx";
 import {PlaylistLibrary} from "./pages/PlaylistLibrary.jsx";
 import {ArtistDetail} from "./pages/ArtistDetail.jsx";
 import GuessRoute from './context/guess_route.jsx';
+import {DiscoveryMusic} from "./pages/DiscoveryMusic.jsx";
 
 const GlobalPlayer = () => {
     const { currentSong, isPlaying, setIsPlaying, playlist, handleNext, handlePrev, playSong, removeFromQueue } = useMusic();
@@ -73,7 +74,8 @@ function App() {
                 <Route path="/search" element={<Search />} />
                 <Route path="/song/:id" element={<SongDetail />} />
                 <Route path="/artist/:id" element={<ArtistDetail />} />
-                
+                <Route path="/discover" element={<DiscoveryMusic />} />
+
                 {/* Route dành cho chính mình (URL: /profile) */}
                 <Route path="/profile" element={<Profile />} />
                 {/* Route dành cho xem người khác (URL: /profile/mizu) */}
