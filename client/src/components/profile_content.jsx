@@ -142,7 +142,7 @@ export function ProfileContent() {
                 is_following: res.data.is_following,
                 followers_count: res.data.follower_count
             }));
-
+            await fetchUser();
         } catch (error) {
             console.error("Lỗi follow user:", error);
             alert("Có lỗi xảy ra");

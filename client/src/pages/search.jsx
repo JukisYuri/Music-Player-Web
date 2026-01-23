@@ -33,7 +33,7 @@ const getRandomColor = () => {
 };
 
 export function Search() {
-    const { user } = useAuth();
+    const { user, fetchUser } = useAuth();
     const { t } = useTranslation();
     const location = useLocation();
     const navigate = useNavigate();
@@ -147,6 +147,7 @@ export function Search() {
             await axios.post(`http://127.0.0.1:8000/api/user/follow/${targetUsername}/`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            await fetchUser();
         } catch (error) {
             console.error("Lỗi follow:", error);
             alert("Có lỗi xảy ra khi theo dõi");
