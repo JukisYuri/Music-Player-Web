@@ -37,7 +37,7 @@ class SentimentPredictor:
     def __init__(self):
         self.model = None
         self.vocab = None
-        self.device = torch.device('cpu')
+        self.device = torch.device('cuda')
 
         self.emoji_pattern = re.compile("["
                                         u"\U0001F600-\U0001F64F"
@@ -117,7 +117,7 @@ class SentimentPredictor:
                 self.vocab = pickle.load(f)
 
             # 2. Config (Khớp 100% thông số Train)
-            VOCAB_SIZE = len(self.vocab) + 1  # +1 cho Padding
+            VOCAB_SIZE = len(self.vocab)
             EMBEDDING_DIM = 128
             HIDDEN_DIM = 128
             OUTPUT_DIM = 3  # [QUAN TRỌNG] 3 lớp (Neg, Neu, Pos)
