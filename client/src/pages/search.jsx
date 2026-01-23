@@ -1,12 +1,31 @@
-import { useState, useEffect } from 'react'; // Bỏ 'use' thừa
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Play, Music, Heart, User, Search as SearchIcon } from 'lucide-react';
 import { HeaderBar } from '../components/header_bar.jsx';
 import { Sidebar } from '../components/sidebar.jsx';
-import { useMusic } from '../context/MusicContext.jsx'; // 1. Import Context
+import { useMusic } from '../context/MusicContext.jsx';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/auth_context.jsx';
 import axios from 'axios';
+
+const removeVietnameseTones = (str) => {
+    if (!str) return "";
+    str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+    str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+    str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+    str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+    str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+    str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+    str = str.replace(/đ/g, "d");
+    str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+    str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+    str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+    str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+    str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+    str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+    str = str.replace(/Đ/g, "D");
+    return str;
+};
 
 const getRandomColor = () => {
     const colors = ["from-blue-600 to-purple-600", "from-green-600 to-teal-600", "from-rose-600 to-orange-600", "from-yellow-500 to-red-600", "from-gray-600 to-slate-800"];
@@ -19,82 +38,93 @@ export function Search() {
     const location = useLocation();
     const navigate = useNavigate();
 
-    // Lấy từ khóa tìm kiếm từ URL
     const searchParams = new URLSearchParams(location.search);
     const query = searchParams.get('q') || '';
 
-    // 2. Lấy Global State
-    const { playSong, currentSong} = useMusic();
+    const { playSong, currentSong } = useMusic();
 
-    // Data States
     const [results, setResults] = useState({ songs: [], artists: [], albums: [], users: [] });
     const [isLoading, setIsLoading] = useState(true);
     const [likedSongs, setLikedSongs] = useState(new Set());
 
-    // --- LOGIC TÌM KIẾM ---
     useEffect(() => {
         const fetchDataAndSearch = async () => {
             setIsLoading(true);
-            try {
-                if (!query) {
-                    setResults({ songs: [], artists: [], albums: [], users: [] });
-                    setIsLoading(false);
-                    return;
-                }
 
-                const lowerQuery = query.toLowerCase();
-                const token = localStorage.getItem('token');
-
-                // --- GỌI API SONG SONG ---
-                const [localSongsRes, userSearchRes] = await Promise.all([
-                    fetch(`http://127.0.0.1:8000/api/music/local-songs/`),
-                    axios.get(`http://127.0.0.1:8000/api/user/search/?q=${query}`, {
-                        headers: token ? { Authorization: `Bearer ${token}` } : {}
-                    })
-                ]);
-
-                const usersData = userSearchRes.data || [];
-                const allSongs = await localSongsRes.json();
-
-                // 2. Lọc Bài hát
-                const matchedSongs = allSongs.filter(song =>
-                    song.title.toLowerCase().includes(lowerQuery) ||
-                    song.artist.toLowerCase().includes(lowerQuery)
-                );
-
-                // 3. Lọc Nghệ sĩ
-                const uniqueArtists = [...new Set(matchedSongs.map(s => s.artist))].map(artist => ({
-                    name: artist,
-                    type: 'Nghệ sĩ',
-                    cover: matchedSongs.find(s => s.artist === artist)?.cover
-                }));
-
-                // 4. Lọc Album
-                const uniqueAlbums = [...new Set(matchedSongs.map(s => s.album || `Tuyển tập ${s.artist}`))].map(albumName => ({
-                    title: albumName,
-                    artist: matchedSongs.find(s => (s.album || `Tuyển tập ${s.artist}`) === albumName)?.artist,
-                    cover: matchedSongs.find(s => (s.album || `Tuyển tập ${s.artist}`) === albumName)?.cover,
-                    color: getRandomColor()
-                }));
-
-                setResults({
-                    songs: matchedSongs,
-                    artists: uniqueArtists,
-                    albums: uniqueAlbums,
-                    users: usersData
-                });
-
-            } catch (err) {
-                console.error("Search error:", err);
-            } finally {
+            // Reset kết quả nếu không có query
+            if (!query.trim()) {
+                setResults({ songs: [], artists: [], albums: [], users: [] });
                 setIsLoading(false);
+                return;
             }
+
+            const lowerQuery = query.toLowerCase();
+            const unsignedQuery = removeVietnameseTones(lowerQuery); // Từ khóa không dấu
+            const token = localStorage.getItem('token');
+
+            let matchedSongs = [];
+            let usersData = [];
+
+            // 1. TÌM BÀI HÁT (Fetch riêng để không bị ảnh hưởng bởi lỗi User)
+            try {
+                const localSongsRes = await fetch(`http://127.0.0.1:8000/api/music/local-songs/`);
+                if (localSongsRes.ok) {
+                    const allSongs = await localSongsRes.json();
+
+                    matchedSongs = allSongs.filter(song => {
+                        const title = song.title.toLowerCase();
+                        const artist = song.artist.toLowerCase();
+                        const unsignedTitle = removeVietnameseTones(title);
+                        const unsignedArtist = removeVietnameseTones(artist);
+
+                        return title.includes(lowerQuery) ||
+                               artist.includes(lowerQuery) ||
+                               unsignedTitle.includes(unsignedQuery) ||
+                               unsignedArtist.includes(unsignedQuery);
+                    });
+                }
+            } catch (err) {
+                console.error("Lỗi tìm bài hát:", err);
+            }
+
+            // 2. TÌM USER
+            try {
+                const userSearchRes = await axios.get(`http://127.0.0.1:8000/api/user/search/?q=${query}`, {
+                    headers: token ? { Authorization: `Bearer ${token}` } : {}
+                });
+                usersData = userSearchRes.data || [];
+            } catch (err) {
+                console.warn("Lỗi tìm user (có thể do chưa login hoặc token hết hạn):", err);
+                // Không throw error để code tiếp tục chạy hiển thị bài hát
+            }
+
+            // 3. XỬ LÝ DỮ LIỆU PHỤ (Nghệ sĩ, Album) TỪ BÀI HÁT TÌM ĐƯỢC
+            const uniqueArtists = [...new Set(matchedSongs.map(s => s.artist))].map(artist => ({
+                name: artist,
+                type: 'Nghệ sĩ',
+                cover: matchedSongs.find(s => s.artist === artist)?.cover
+            }));
+
+            const uniqueAlbums = [...new Set(matchedSongs.map(s => s.album || `Tuyển tập ${s.artist}`))].map(albumName => ({
+                title: albumName,
+                artist: matchedSongs.find(s => (s.album || `Tuyển tập ${s.artist}`) === albumName)?.artist,
+                cover: matchedSongs.find(s => (s.album || `Tuyển tập ${s.artist}`) === albumName)?.cover,
+                color: getRandomColor()
+            }));
+
+            setResults({
+                songs: matchedSongs,
+                artists: uniqueArtists,
+                albums: uniqueAlbums,
+                users: usersData
+            });
+
+            setIsLoading(false);
         };
 
         fetchDataAndSearch();
     }, [query]);
 
-    // 3. Sử dụng hàm playSong từ Context
     const handlePlaySong = (song) => {
         playSong(song);
     };
@@ -105,9 +135,7 @@ export function Search() {
                 alert("Bạn cần đăng nhập để theo dõi người khác!");
                 return;
             }
-
             const token = localStorage.getItem('token');
-            // Optimistic UI Update
             setResults(prev => ({
                 ...prev,
                 users: prev.users.map(u =>
@@ -116,14 +144,12 @@ export function Search() {
                     : u
                 )
             }));
-
             await axios.post(`http://127.0.0.1:8000/api/user/follow/${targetUsername}/`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-
         } catch (error) {
             console.error("Lỗi follow:", error);
-            alert("Có lỗi xảy ra khi theo dõi/ngừng theo dõi người dùng");
+            alert("Có lỗi xảy ra khi theo dõi");
         }
     };
 
@@ -171,15 +197,18 @@ export function Search() {
                                             className="group bg-neutral-900 p-6 rounded-xl hover:bg-neutral-800 transition-colors cursor-pointer relative"
                                         >
                                             <div className="w-24 h-24 mb-4 rounded-full overflow-hidden shadow-lg relative">
-                                                {results.songs[0].cover ? <img src={results.songs[0].cover} className="w-full h-full object-cover"/> : <div className="bg-neutral-700 w-full h-full flex items-center justify-center"><Music/></div>}
+                                                {/* SỬA LẠI LOGIC HIỂN THỊ ẢNH: Chấp nhận mọi loại ảnh */}
+                                                {results.songs[0].cover ? (
+                                                    <img src={results.songs[0].cover} className="w-full h-full object-cover"/>
+                                                ) : (
+                                                    <div className="bg-neutral-700 w-full h-full flex items-center justify-center"><Music/></div>
+                                                )}
                                             </div>
                                             <h3 className="text-3xl font-bold mb-1 line-clamp-1">{results.songs[0].title}</h3>
                                             <div className="flex items-center gap-2 text-neutral-400">
                                                 <span className="bg-neutral-800 text-white text-xs px-2 py-1 rounded-full uppercase font-bold">Bài hát</span>
                                                 <span>{results.songs[0].artist}</span>
                                             </div>
-
-                                            {/* Nút Play to */}
                                             <div className="absolute bottom-6 right-6 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center shadow-lg opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:scale-105">
                                                 <Play size={24} fill="black" className="ml-1 text-black"/>
                                             </div>
@@ -217,7 +246,7 @@ export function Search() {
                                 </section>
                             )}
 
-                            {/* 2. USERS (HIỂN THỊ KHI CÓ KẾT QUẢ) */}
+                            {/* 2. USERS */}
                             {results.users.length > 0 && (
                                 <section>
                                     <h2 className="text-2xl font-bold mb-4">Người dùng</h2>
@@ -226,7 +255,6 @@ export function Search() {
                                             <div key={u.id} className="bg-neutral-900/50 p-4 rounded-xl hover:bg-neutral-800 transition-colors flex flex-col items-center group relative cursor-pointer"
                                                 onClick={() => navigate(`/profile/${u.username}`)}
                                             >
-                                                {/* Avatar */}
                                                 <div className="w-32 h-32 rounded-full overflow-hidden mb-4 shadow-lg border-2 border-neutral-800 group-hover:border-neutral-600 transition-colors">
                                                     {u.profile_image_url ? (
                                                         <img src={`${u.profile_image_url}`} alt={u.username} className="w-full h-full object-cover"/>
@@ -236,12 +264,8 @@ export function Search() {
                                                         </div>
                                                     )}
                                                 </div>
-
-                                                {/* Info */}
                                                 <h3 className="font-bold text-center truncate w-full px-2">{u.display_name || u.username}</h3>
                                                 <p className="text-sm text-neutral-400 text-center mb-4">@{u.username}</p>
-
-                                                {/* Button Follow */}
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -287,7 +311,8 @@ export function Search() {
                                         {results.albums.map((album, idx) => (
                                             <div key={idx} className="bg-neutral-900/50 p-4 rounded-xl hover:bg-neutral-800 transition-colors cursor-pointer group">
                                                 <div className="aspect-square rounded-lg overflow-hidden mb-4 shadow-lg relative bg-linear-to-br from-gray-700 to-gray-900">
-                                                    {album.cover && album.cover.startsWith('data:') ? (
+                                                    {/* SỬA LẠI: Chấp nhận mọi loại link ảnh */}
+                                                    {album.cover ? (
                                                         <img src={album.cover} className="w-full h-full object-cover"/>
                                                     ) : (
                                                         <div className={`w-full h-full bg-linear-to-br ${album.color}`}></div>

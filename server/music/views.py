@@ -1,5 +1,6 @@
 import json
 import os
+import random
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.decorators import method_decorator
@@ -7,8 +8,10 @@ from django.views import View
 from django.http import JsonResponse, FileResponse, Http404
 from django.urls import reverse
 from django.views.generic import TemplateView
+from rest_framework.permissions import IsAuthenticated
+
 from authentication.models import User
-from .models import Album, AlbumSong, Comment, Artist
+from .models import Album, AlbumSong, Comment, Artist, ListeningHistory
 from django.db.models import Sum, Count
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, status, permissions
@@ -16,7 +19,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from .models import Playlist, Song, PlaylistSong
-from .serializers import PlaylistSerializer, CreatePlaylistSerializer, PlaylistDetailSerializer
+from .serializers import PlaylistSerializer, CreatePlaylistSerializer, PlaylistDetailSerializer, HistorySerializer
 
 
 def stream_song(request, pk):
@@ -69,6 +72,7 @@ def increment_view(request, pk):
     if request.method == 'POST':
         try:
             song = Song.objects.get(pk=pk)
+            # song.views += random.randint(1, 100)
             song.views += 1
             song.save()
             return JsonResponse({'status': 'success', 'views': song.views})
@@ -423,3 +427,55 @@ class ArtistDetailView(View):
         }
 
         return JsonResponse(response_data)
+
+
+# server/music/views.py
+
+# --- API GHI LẠI LỊCH SỬ KHI NGHE ---
+@method_decorator(csrf_exempt, name='dispatch')
+# server/music/views.py
+
+@method_decorator(csrf_exempt, name='dispatch')
+class RecordPlaybackView(APIView):
+    # Cho phép truy cập không cần token để khớp với cách dùng user_id thủ công
+    permission_classes = []
+
+    def post(self, request, song_id):
+        try:
+            # Lấy user_id từ body (JSON)
+            user_id = request.data.get('user_id')
+
+            if not user_id:
+                return Response({"message": "Thiếu user_id trong yêu cầu"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Tìm User và Song trong Database
+            user = get_object_or_404(User, pk=user_id)
+            song = get_object_or_404(Song, pk=song_id)
+
+            # Tạo lịch sử nghe. Việc này tự động tăng song.views qua hàm save() của model
+            ListeningHistory.objects.create(user=user, song=song)
+
+            return Response({
+                "status": "success",
+                "message": "Đã lưu lịch sử và tăng lượt nghe",
+                "new_views": song.views
+            }, status=status.HTTP_201_CREATED)
+
+        except User.DoesNotExist:
+            return Response({"message": "Người dùng không tồn tại"}, status=status.HTTP_404_NOT_FOUND)
+        except Song.DoesNotExist:
+            return Response({"message": "Bài hát không tồn tại"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# --- API LẤY DANH SÁCH LỊCH SỬ ---
+class ListeningHistoryListView(generics.ListAPIView):
+    serializer_class = HistorySerializer
+
+    def get_queryset(self):
+        user_id = self.request.query_params.get('user_id')
+        if user_id:
+            # Trả về 20 bài gần nhất
+            return ListeningHistory.objects.filter(user_id=user_id).order_by('-played_at')[:20]
+        return ListeningHistory.objects.none()

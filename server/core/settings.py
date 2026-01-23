@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     'authentication',
     'music',
     'speechToText',
-    'suggest',
+    'suggest','sentiment'
 
 
 ]

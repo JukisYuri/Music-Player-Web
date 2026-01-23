@@ -1,6 +1,6 @@
 # server/music/serializers.py
 from rest_framework import serializers
-from .models import Playlist, Song, PlaylistSong
+from .models import Playlist, Song, PlaylistSong, ListeningHistory
 
 
 # 1. SỬA LẠI CLASS NÀY: Serializer hiển thị bài hát trong Playlist
@@ -91,3 +91,11 @@ class CreatePlaylistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Playlist
         fields = ['title', 'is_public']
+
+
+class HistorySerializer(serializers.ModelSerializer):
+    song = SongInPlaylistSerializer(read_only=True)
+
+    class Meta:
+        model = ListeningHistory
+        fields = ['id', 'song', 'played_at']

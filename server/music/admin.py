@@ -1,11 +1,11 @@
-# server/music/admin.py
 from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import Count
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import display
-# 1. IMPORT THÊM "Comment"
-from .models import Artist, Album, Song, Playlist, PlaylistSong, AlbumSong, Comment
+
+from sentiment.apps import SentimentConfig
+from .models import Artist, Album, Song, Playlist, PlaylistSong, AlbumSong, Comment, ListeningHistory
 
 
 # --- 1. ARTIST ADMIN ---
@@ -45,24 +45,89 @@ class AlbumAdmin(ModelAdmin):
     def get_artists(self, obj):
         return ", ".join([a.name for a in obj.artists.all()])
 
+@admin.action(description='Phân loại lại cảm xúc bằng AI')
+def analyze_sentiment_action(modeladmin, request, queryset):
+    """Action để chạy AI cho các comment được chọn trong trang Admin"""
+    predictor = SentimentConfig.predictor
+    updated = []
 
-# --- 3. CONFIG BÌNH LUẬN TRONG SONG (MỚI) ---
+    for comment in queryset:
+        label, conf = predictor.predict(comment.content)
+        comment.sentiment = label
+        comment.confidence_score = conf
+        updated.append(comment)
+
+    Comment.objects.bulk_update(updated, ['sentiment', 'confidence_score'])
+
+    modeladmin.message_user(request, f"Đã phân loại xong {len(updated)} comment!")
+
+# --- 3. COMMENT MANAGEMENT (MỚI - QUẢN LÝ BÌNH LUẬN) ---
+@admin.register(Comment)
+class CommentAdmin(ModelAdmin):
+    list_display = ('user', 'song', 'content_short', 'sentiment_badge', 'confidence_fmt', 'created_at')
+    list_filter = ('sentiment', 'created_at', 'song')
+    search_fields = ('content', 'user__username', 'song__title')
+    autocomplete_fields = ['user', 'song']
+    list_per_page = 20
+    readonly_fields = ('created_at', 'confidence_score')
+
+    actions = [analyze_sentiment_action]
+
+    @display(description="Nội dung")
+    def content_short(self, obj):
+        return obj.content[:50] + "..." if len(obj.content) > 50 else obj.content
+
+    @display(description="Cảm xúc", ordering='sentiment')
+    def sentiment_badge(self, obj):
+        if obj.sentiment == 'POSITIVE':
+            color = "green"
+            label = "Tích cực"
+        elif obj.sentiment == 'NEGATIVE':
+            color = "red"
+            label = "Tiêu cực"
+        else:
+            color = "gray"
+            label = "Trung tính"
+
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            color, label
+        )
+
+    @display(description="Độ tin cậy", ordering='confidence_score')
+    def confidence_fmt(self, obj):
+        if obj.confidence_score:
+            return f"{obj.confidence_score * 100:.1f}%"
+        return "-"
+
+
+# --- 4. SONG ADMIN (CẬP NHẬT INLINE) ---
 class CommentInline(TabularInline):
     model = Comment
-    extra = 0  # Không hiển thị dòng trống thừa
-    tab = True  # Gom vào tab riêng cho gọn (Tính năng của Unfold)
-
-    # Các trường hiển thị
-    fields = ('user', 'content', 'created_at')
-
-    # Chỉ đọc thời gian (không cho sửa ngày comment)
-    readonly_fields = ('created_at',)
-
-    # Cho phép tìm user nhanh nếu danh sách user lớn
+    extra = 0
+    tab = True
+    fields = ('user', 'content', 'sentiment_badge', 'confidence_fmt', 'created_at')
+    readonly_fields = ('sentiment_badge', 'confidence_fmt', 'created_at')
     autocomplete_fields = ['user']
 
+    @display(description="Cảm xúc")
+    def sentiment_badge(self, obj):
+        if obj.sentiment == 'POSITIVE':
+            color = "green"
+            label = "Tích cực"
+        elif obj.sentiment == 'NEGATIVE':
+            color = "red"
+            label = "Tiêu cực"
+        else:
+            color = "gray"
+            label = "Trung tính"
+        return format_html('<span style="color: {}; font-weight: bold;">{}</span>', color, label)
 
-# --- 4. SONG ADMIN ---
+    @display(description="Độ tin cậy")
+    def confidence_fmt(self, obj):
+        return f"{obj.confidence_score * 100:.1f}%" if obj.confidence_score else "-"
+
+
 @admin.register(Song)
 class SongAdmin(ModelAdmin):
     list_display = ('title_display', 'get_artists', 'get_albums', 'duration_fmt', 'views_badge')
@@ -72,8 +137,6 @@ class SongAdmin(ModelAdmin):
     list_per_page = 20
     autocomplete_fields = ['artists']
     ordering = ('-views',)
-
-    # THÊM "CommentInline" VÀO ĐÂY
     inlines = [CommentInline]
 
     @display(description="Tên bài hát", ordering='title')
@@ -127,3 +190,8 @@ class PlaylistAdmin(ModelAdmin):
     @display(description="Trạng thái", boolean=True, ordering='is_public')
     def is_public_badge(self, obj):
         return obj.is_public
+
+
+
+
+

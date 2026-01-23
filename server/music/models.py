@@ -86,10 +86,36 @@ class PlaylistSong(models.Model):
         return ""
 
 class Comment(models.Model):
+    SENTIMENT_CHOICES = [
+        ('POSITIVE', 'Tích cực'),
+        ('NEGATIVE', 'Tiêu cực'),
+        ('NEUTRAL', 'Trung tính'),
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
     song = models.ForeignKey(Song, on_delete=models.CASCADE, related_name='comments')
+    sentiment = models.CharField(max_length=20, choices=SENTIMENT_CHOICES, blank=True, null=True)
+    confidence_score = models.FloatField(default=0.0)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.song.title}"
+
+class ListeningHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='listening_history')
+    song = models.ForeignKey(Song, on_delete=models.CASCADE, related_name='played_by')
+    played_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Lịch sử nghe"
+        verbose_name_plural = "Lịch sử nghe"
+        ordering = ['-played_at']
+
+    def __str__(self):
+        return f"{self.user.username} nghe {self.song.title} lúc {self.played_at}"
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.song.views += 1
+            self.song.save()
+        super().save(*args, **kwargs)
