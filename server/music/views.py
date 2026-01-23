@@ -552,3 +552,76 @@ class DiscoveryMusicView(APIView):
             "id": s.id, "title": s.title, "artist": artists,
             "cover": cover_url, "audioUrl": audio_url, "views": s.views
         }
+
+
+class GenreListView(APIView):
+    permission_classes = []
+
+    def get(self, request):
+        # Sắp xếp thể loại theo số lượng bài hát giảm dần
+        genres = Genre.objects.annotate(
+            song_count=Count('songs')
+        ).filter(song_count__gt=0).order_by('-song_count')
+
+        data = []
+        for genre in genres:
+            # Lấy 15 bài hát tiêu biểu cho mỗi thể loại để hiển thị ở hàng ngang
+            songs = Song.objects.filter(genres=genre).order_by('-views')[:15]
+            data.append({
+                "id": genre.id,
+                "name": genre.name,
+                "count": genre.song_count,
+                "songs": [self.format_song(s, request) for s in songs]
+            })
+
+        return Response(data)
+
+    def format_song(self, s, request):
+        cover_url = request.build_absolute_uri(s.cover_image.url) if s.cover_image else ""
+        audio_url = request.build_absolute_uri(reverse('stream-song', args=[s.id]))
+        artists = ", ".join([a.name for a in s.artists.all()])
+        return {
+            "id": s.id,
+            "title": s.title,
+            "artist": artists,
+            "cover": cover_url,
+            "audioUrl": audio_url,
+            "views": s.views
+        }
+
+
+class ChartListView(APIView):
+    permission_classes = []
+
+    def get(self, request):
+        # 1. Top 100 bài hát phát nhiều nhất (theo views)
+        top_played = Song.objects.all().order_by('-views')[:100]
+
+        # 2. Top 100 bài hát được quan tâm nhất (theo số lượng bình luận)
+        top_commented = Song.objects.annotate(
+            comment_count=Count('comments')
+        ).order_by('-comment_count')[:100]
+
+        return Response({
+            "top_played": [self.format_song(s, request) for s in top_played],
+            "top_commented": [self.format_song(s, request, is_comment=True) for s in top_commented]
+        })
+
+    def format_song(self, s, request, is_comment=False):
+        cover_url = request.build_absolute_uri(s.cover_image.url) if s.cover_image else ""
+        audio_url = request.build_absolute_uri(reverse('stream-song', args=[s.id]))
+        artists = ", ".join([a.name for a in s.artists.all()])
+
+        data = {
+            "id": s.id,
+            "title": s.title,
+            "artist": artists,
+            "cover": cover_url,
+            "audioUrl": audio_url,
+            "views": s.views,
+        }
+
+        if is_comment:
+            data["comment_count"] = getattr(s, 'comment_count', 0)
+
+        return data

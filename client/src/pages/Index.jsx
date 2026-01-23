@@ -5,7 +5,7 @@ import {Sidebar} from '../components/sidebar.jsx';
 import {LogoutConfirmModal} from '../components/logout_confirm_modal.jsx';
 import {PlaylistTracks} from '../components/playlist_and_album.jsx';
 import {AddToPlaylistModal} from '../components/playlist_modal.jsx';
-import {Play, Clock, Music, Disc, Heart, PlusCircle, ListMusic, ChevronRight, Mic2} from 'lucide-react';
+import {Play, Clock, Music, Disc, Heart, PlusCircle, ListMusic, ChevronRight, Mic2, Loader2} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {useMusic} from '../context/MusicContext.jsx';
 import {useAuth} from '../context/auth_context.jsx';

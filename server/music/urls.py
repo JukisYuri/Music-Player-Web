@@ -2,7 +2,7 @@
 from django.urls import path
 from .views import LocalMusicListView, stream_song, increment_view, TopAlbumsView, AlbumDetailView, SongDetailView, \
     CommentSongView, StatisticsView, MyPlaylistListView, AddSongToPlaylistView, PlaylistDetailView, ArtistAlbumsView, \
-    ArtistDetailView, RecordPlaybackView, ListeningHistoryListView, DiscoveryMusicView
+    ArtistDetailView, RecordPlaybackView, ListeningHistoryListView, DiscoveryMusicView, GenreListView, ChartListView
 
 urlpatterns = [
     path('local-songs/', LocalMusicListView.as_view(), name='local-songs'),
@@ -28,6 +28,6 @@ urlpatterns = [
     path('history/', ListeningHistoryListView.as_view(), name='listening-history'),
 
     path('discovery/', DiscoveryMusicView.as_view(), name='discovery-music'),
-
-
+    path('genres/', GenreListView.as_view(), name='genre-list'),
+    path('charts/', ChartListView.as_view(), name='charts')
 ]

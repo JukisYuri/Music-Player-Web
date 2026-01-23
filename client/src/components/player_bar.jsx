@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, memo } from 'react';
+import { useState, useRef, useEffect, memo, } from 'react';
+import {useNavigate} from 'react-router-dom';
 import {
     Play, Pause, SkipBack, SkipForward, Volume2, ListMusic,
     Volume1, VolumeX, Music, Heart, PlusCircle, X, Trash2, Shuffle
@@ -33,9 +34,10 @@ const SongItem = memo(({ song, isActive, isPlaying, onClick, onRemove }) => {
     );
 });
 
+
 export function PlayerBar({
     currentSong = '', artist = "...", audioUrl = "", cover = "",
-    onNext, onPrev, onPlayingChange, playlist = [], onPlaySong, forceIsPlaying, onRemoveFromQueue
+    onNext, onPrev, onPlayingChange, playlist = [], onPlaySong, forceIsPlaying, onRemoveFromQueue,
 }) {
     const { t } = useTranslation();
     const { isShuffle, setIsShuffle } = useMusic(); // Lấy từ context
@@ -48,7 +50,7 @@ export function PlayerBar({
     const [isLiked, setIsLiked] = useState(false);
     const [showPlaylist, setShowPlaylist] = useState(false);
     const [blobUrl, setBlobUrl] = useState(null);
-
+    const navigate = useNavigate();
     const audioRef = useRef(null);
     const progressRef = useRef(null);
     const volumeRef = useRef(null);
@@ -103,6 +105,10 @@ export function PlayerBar({
         document.addEventListener('mouseup', up);
     };
 
+    const handleSongClick = (song) => {
+        navigate(`/song/${song.id}`);
+    };
+
     const queueTracks = playlist.filter(s => s.title !== currentSong);
 
     return (
@@ -128,7 +134,7 @@ export function PlayerBar({
 
             <audio ref={audioRef} src={blobUrl} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onTimeUpdate={() => !isDragging && setCurrentTime(audioRef.current.currentTime)} onLoadedMetadata={() => setDuration(audioRef.current.duration)} onEnded={onAudioEnded} />
 
-            <div className="max-w-[1400px] h-full mx-auto px-4 flex items-center justify-between gap-4">
+            <div onClick={handleSongClick} className="max-w-[1400px] h-full mx-auto px-4 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3 w-[30%] min-w-0">
                     <div className="w-14 h-14 rounded-md overflow-hidden border border-white/10">
                         {cover ? <img src={cover} className="w-full h-full object-cover"/> : <div className="w-full h-full bg-neutral-800 flex items-center justify-center"><Music size={24}/></div>}
