@@ -319,7 +319,7 @@ class NotificationUnreadCountView(APIView):
 # Search Users
 class SearchUserView(ListAPIView):
     serializer_class = UserSearchSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         query = self.request.query_params.get('q', '') # Lấy từ url: /api/search/?q=mizu

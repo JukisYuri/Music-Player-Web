@@ -60,7 +60,9 @@ INSTALLED_APPS = [
     'authentication',
     'music',
     'speechToText',
-    'suggest','sentiment'
+    'suggest'
+    ,'sentiment'
+    ,'sentiment2'
 
 
 ]
@@ -234,7 +236,6 @@ UNFOLD = {
                     {
                         "title": _("Tổng quan"),
                         "icon": "monitoring",
-
                         "link": reverse_lazy("admin:index"),
                     },
                 ],
@@ -249,6 +250,11 @@ UNFOLD = {
                         "link": reverse_lazy("admin:music_song_changelist"),
                     },
                     {
+                        "title": _("Thể loại"), # MỤC MỚI THÊM
+                        "icon": "category",
+                        "link": reverse_lazy("admin:music_genre_changelist"),
+                    },
+                    {
                         "title": _("Album"),
                         "icon": "album",
                         "link": reverse_lazy("admin:music_album_changelist"),
@@ -261,24 +267,26 @@ UNFOLD = {
                 ],
             },
             {
-                "title": _("Người dùng"),
+                "title": _("Người dùng & Tương tác"),
                 "separator": True,
                 "items": [
-                    # {
-                    #     "title": _("Playlists"),
-                    #     "icon": "queue_music",
-                    #     # SỬA Ở ĐÂY
-                    #     "link": reverse_lazy("admin:music_playlist_changelist"),
-                    # },
                     {
                         "title": _("Tài khoản"),
                         "icon": "group",
-                        # SỬA Ở ĐÂY
                         "link": reverse_lazy("admin:authentication_user_changelist"),
+                    },
+                    {
+                        "title": _("Bình luận"), # MỤC MỚI THÊM
+                        "icon": "chat_bubble",
+                        "link": reverse_lazy("admin:music_comment_changelist"),
+                    },
+                    {
+                        "title": _("Lịch sử nghe"), # THÊM NẾU BẠN MUỐN QUẢN LÝ
+                        "icon": "history",
+                        "link": reverse_lazy("admin:music_listeninghistory_changelist"),
                     },
                 ],
             },
-
         ],
     },
 }

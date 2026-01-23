@@ -60,7 +60,7 @@ export function Search() {
 
             const lowerQuery = query.toLowerCase();
             const unsignedQuery = removeVietnameseTones(lowerQuery); // Từ khóa không dấu
-            const token = localStorage.getItem('token');
+            // const token = localStorage.getItem('token');
 
             let matchedSongs = [];
             let usersData = [];
@@ -90,7 +90,7 @@ export function Search() {
             // 2. TÌM USER
             try {
                 const userSearchRes = await axios.get(`http://127.0.0.1:8000/api/user/search/?q=${query}`, {
-                    headers: token ? { Authorization: `Bearer ${token}` } : {}
+                    // headers: token ? { Authorization: `Bearer ${token}` } : {}
                 });
                 usersData = userSearchRes.data || [];
             } catch (err) {
