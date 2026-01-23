@@ -126,7 +126,7 @@ export function DiscoveryMusic() {
                         {data?.genres_grouped?.map(group => (
                             <HorizontalSection
                                 key={group.genre_name}
-                                title={`Dành cho fan của ${group.genre_name}`}
+                                title={`Dành cho bạn: ${group.genre_name}`}
                                 icon={Music2}
                                 songs={group.songs}
                                 gradient="from-green-500 to-teal-600"

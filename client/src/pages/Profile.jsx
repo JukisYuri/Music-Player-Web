@@ -18,7 +18,7 @@ export function Profile() {
             <div className="col-span-10 pt-16 h-screen">
                 <ProfileContent />
             </div>
-            <PlayerBar />
+
             <LogoutConfirmModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={() => setIsModalOpen(false)} />
         </div>
         </>
