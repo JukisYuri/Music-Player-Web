@@ -42,7 +42,11 @@
       "no_user": "Please log in to view this profile",
       "no_bio": "No bio has been added yet",
       "bio": "Write something about yourself",
-      "click_to_change": "Click to change"
+      "click_to_change": "Click to change",
+      "recently_played": "Recently Played",
+      "play_count": "{{count}} plays",
+      "no_history": "Your listening history is empty",
+      "view_all_history": "View all history"
     },
     "logout_confirm_modal": {
       "title": "Confirm Logout",
@@ -160,5 +164,13 @@
       "artists": "Artists",
       "followed": "Followed",
       "follow": "Follow"
+    },
+
+    "history": {
+        "title": "Listening History",
+        "last_played": "Last played",
+        "most_played": "Most Played",
+        "clear_history": "Clear History",
+        "confirm_clear": "Are you sure you want to clear your listening history?"
     }
   }

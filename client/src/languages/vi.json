@@ -42,8 +42,19 @@
       "no_user": "Vui lòng đăng nhập để xem hồ sơ này",
       "no_bio": "Chưa có tiểu sử nào được cập nhật",
       "bio": "Viết gì đó về bạn",
-      "click_to_change": "Nhấn vào để thay đổi"
-    }, 
+      "click_to_change": "Nhấn vào để thay đổi",
+      "recently_played": "Vừa nghe gần đây",
+      "play_count": "{{count}} lần nghe",
+      "no_history": "Lịch sử nghe nhạc đang trống",
+      "view_all_history": "Xem tất cả lịch sử"
+    },
+    "history": {
+      "title": "Lịch sử nghe nhạc",
+      "last_played": "Nghe gần nhất",
+      "most_played": "Nghe nhiều nhất",
+      "clear_history": "Xóa lịch sử",
+      "confirm_clear": "Bạn có chắc chắn muốn xóa toàn bộ lịch sử nghe nhạc không?"
+    },
     "logout_confirm_modal": {
       "title": "Xác nhận Đăng xuất",
       "message": "Bạn có chắc chắn muốn đăng xuất khỏi Music Player không? Bạn sẽ cần phải đăng nhập lại để tiếp tục nghe nhạc"
