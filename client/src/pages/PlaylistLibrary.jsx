@@ -6,8 +6,10 @@ import { LogoutConfirmModal } from '../components/logout_confirm_modal.jsx';
 import { useAuth } from '../context/auth_context.jsx';
 import { ListMusic, Play, PlusCircle, Loader2, Heart} from 'lucide-react';
 import { AddToPlaylistModal } from '../components/playlist_modal.jsx';
+import { useTranslation } from "react-i18next";
 
 export function PlaylistLibrary() {
+    const {t} = useTranslation();
     const { user } = useAuth();
     const navigate = useNavigate();
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -64,21 +66,21 @@ export function PlaylistLibrary() {
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-3xl font-bold flex items-center gap-3">
                         <ListMusic className="text-green-500" size={32}/>
-                        Playlist của tôi
+                        {t("playlist_page.my_playlists")}
                     </h1>
 
                     <button
                         onClick={() => setIsCreateModalOpen(true)}
                         className="bg-green-500 hover:bg-green-400 text-black px-4 py-2 rounded-full font-bold flex items-center gap-2 transition-transform hover:scale-105"
                     >
-                        <PlusCircle size={20}/> Tạo Playlist mới
+                        <PlusCircle size={20}/> {t("playlist_page.create_new")}
                     </button>
                 </div>
 
                 {loading ? (
                     <div className="flex justify-center mt-10"><Loader2 className="animate-spin text-green-500"/></div>
                 ) : myPlaylists.length === 0 ? (
-                    <div className="text-neutral-500 text-center mt-10 text-lg mb-10">Bạn chưa có playlist nào. Hãy tạo mới!</div>
+                    <div className="text-neutral-500 text-center mt-10 text-lg mb-10">{t("playlist_page.no_playlists")}</div>
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-12">
                         {myPlaylists.map((pl) => (
@@ -111,7 +113,7 @@ export function PlaylistLibrary() {
                 <div className="flex items-center justify-between mb-6 border-t border-white/10 pt-8">
                     <h1 className="text-3xl font-bold flex items-center gap-3">
                         <Heart className="text-green-500" size={32}/>
-                        Album yêu thích
+                        {t("playlist_page.favorite_albums")}
                     </h1>
                 </div>
             </div>

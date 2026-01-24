@@ -4,8 +4,10 @@ import { HeaderBar } from '../components/header_bar.jsx';
 import { useAuth } from '../context/auth_context.jsx';
 import { useMusic } from '../context/MusicContext.jsx';
 import { Sparkles, History, Music2, Mic2, Play, Loader2, X, ChevronRight } from 'lucide-react';
+import { useTranslation } from "react-i18next";
 
 export function DiscoveryMusic() {
+    const {t} = useTranslation();
     const { user } = useAuth(); // Lấy thông tin người dùng
     const { playSong } = useMusic(); // Lấy hàm phát nhạc
     const [data, setData] = useState({ recently_played: [], genres_grouped: [], artists_grouped: [] });
@@ -96,11 +98,11 @@ export function DiscoveryMusic() {
                 <div className="mb-16 relative overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-neutral-900 to-neutral-800 p-12 border border-white/5 shadow-2xl">
                     <div className="relative z-10 max-w-2xl">
                         <div className="flex items-center gap-2 mb-4 text-green-400 font-bold tracking-widest text-sm">
-                            <Sparkles size={18} /> KHÁM PHÁ MỖI NGÀY
+                            <Sparkles size={18} /> {t("discovery.explore")}
                         </div>
-                        <h1 className="text-6xl font-black mb-6 leading-tight">Giai điệu dành riêng cho bạn</h1>
+                        <h1 className="text-6xl font-black mb-6 leading-tight">{t("discovery.your_melody")}</h1>
                         <p className="text-lg text-neutral-400 leading-relaxed">
-                            Dựa trên gu âm nhạc của bạn, chúng tôi đã chuẩn bị những bài hát phù hợp nhất cho khoảnh khắc này.
+                            {t("discovery.preparation")}
                         </p>
                     </div>
                     {/* Decorative Element */}
@@ -110,7 +112,7 @@ export function DiscoveryMusic() {
                 {loading ? (
                     <div className="flex flex-col items-center justify-center h-64 gap-4">
                         <Loader2 className="animate-spin text-green-500" size={48} />
-                        <p className="text-neutral-500 font-medium">Đang chuẩn bị âm nhạc...</p>
+                        <p className="text-neutral-500 font-medium">{t("discovery.preparation_music")}</p>
                     </div>
                 ) : (
                     <>

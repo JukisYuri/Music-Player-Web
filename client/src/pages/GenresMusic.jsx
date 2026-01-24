@@ -4,8 +4,10 @@ import { HeaderBar } from '../components/header_bar.jsx';
 import { useAuth } from '../context/auth_context.jsx';
 import { useMusic } from '../context/MusicContext.jsx';
 import { Mic2, Play, Loader2, X, Sparkles, Music } from 'lucide-react';
+import { useTranslation } from "react-i18next";
 
 export function GenresMusic() {
+    const {t} = useTranslation();
     const { user } = useAuth();
     const { playSong } = useMusic();
     const [genres, setGenres] = useState([]);
@@ -74,7 +76,7 @@ export function GenresMusic() {
                     <div className="p-3 bg-green-500/10 rounded-2xl">
                         <Mic2 className="text-green-500" size={40} />
                     </div>
-                    <h1 className="text-4xl font-bold">Thể loại âm nhạc</h1>
+                    <h1 className="text-4xl font-bold">{t("genres.title")}</h1>
                 </div>
 
                 {genres.map(genre => (

@@ -26,7 +26,8 @@
       "library": "Library",
       "playlists": "Playlists",
       "discover": "Discover",
-      "genres": "Themes and Genres"
+      "genres": "Themes and Genres",
+      "home": "Home"
     },
     "profile": {
       "title": "Profile",
@@ -75,7 +76,14 @@
       "title_music": "Song",
       "title_artist": "Artist",
       "see_all": "See All",
-      "number": "#"
+      "number": "#",
+      "album": "Album",
+      "welcome": "Welcome Back",
+      "ready_to_play": "Ready to play music",
+      "choose_song": "Choose a song to get started",
+      "my_play_list": "My Playlists",
+      "operation": "Operation",
+      "album_according_to_artist": "Album according to Artist"
     },
     "player_bar": {
       "current_song": "Please select a song"
@@ -165,6 +173,12 @@
       "followed": "Followed",
       "follow": "Follow"
     },
+    "playlist_page": {
+      "my_playlists": "My Playlists",
+      "create_new": "Create New Playlist",
+      "no_playlists": "You don't have any playlists yet. Create one now!",
+      "favorite_albums": "Favorite Albums"
+    },
 
     "history": {
         "title": "Listening History",
@@ -172,5 +186,24 @@
         "most_played": "Most Played",
         "clear_history": "Clear History",
         "confirm_clear": "Are you sure you want to clear your listening history?"
+    },
+    "discovery": {
+      "explore": "EXPLORE DAILY",
+      "your_melody": "Your Personalized Melody",
+      "preparation": "Based on your music taste, we've prepared the most suitable songs for this moment",
+      "preparation_music": "Preparing your music..."
+    },
+    "genres": {
+      "title": "Music Genres"
+    },
+    "chart_music": {
+      "title": "Charts",
+      "most_listened": "The Most Trending Tunes",
+      "top_listened": "Top Listened",
+      "top_cared": "Top Cared",
+      "rank": "Rank",
+      "song_title": "Song",
+      "artist": "Artist",
+      "data": "Data"
     }
   }

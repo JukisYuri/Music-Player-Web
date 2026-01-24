@@ -179,11 +179,9 @@ export function Index() {
                                 </>
                             ) : (
                                 <>
-                                    <p className="text-sm font-medium text-neutral-400 uppercase tracking-wider mb-2">Chào
-                                        mừng trở lại</p>
-                                    <h1 className="text-4xl md:text-5xl font-black text-white leading-tight mb-2">Sẵn
-                                        sàng phát nhạc</h1>
-                                    <p className="text-xl text-neutral-300 font-medium">Chọn bài hát để bắt đầu</p>
+                                    <p className="text-sm font-medium text-neutral-400 uppercase tracking-wider mb-2">{t('home_page.welcome')}</p>
+                                    <h1 className="text-4xl md:text-5xl font-black text-white leading-tight mb-2">{t('home_page.ready_to_play')}</h1>
+                                    <p className="text-xl text-neutral-300 font-medium">{t('home_page.choose_song')}</p>
                                 </>
                             )}
                         </div>
@@ -195,12 +193,12 @@ export function Index() {
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-2xl font-bold flex items-center gap-2">
                                     <ListMusic className="text-green-500"/>
-                                    Playlist của tôi
+                                    {t('home_page.my_play_list')}
                                 </h2>
                                 {myPlaylists.length > 5 && (
                                     <button onClick={() => navigate('/playlist')}
                                             className="text-sm font-bold text-neutral-400 hover:text-white uppercase tracking-wider flex items-center hover:underline">
-                                        Xem tất cả <ChevronRight size={16}/>
+                                        {t('home_page.see_all')} <ChevronRight size={16}/>
                                     </button>
                                 )}
                             </div>
@@ -225,7 +223,7 @@ export function Index() {
                             <div>{t('home_page.title_music')}</div>
                             <div>{t('home_page.title_artist')}</div>
                             <div className="text-right flex justify-end items-center"><Clock size={16}/></div>
-                            <div className="text-center">Thao tác</div>
+                            <div className="text-center">{t('home_page.operation')}</div>
                         </div>
                         <div className="flex flex-col mt-2">
                             {playlist.slice(0, 10).map((song, index) => {
@@ -295,7 +293,7 @@ export function Index() {
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold flex items-center gap-2">
                                 <Mic2 className="text-green-500"/>
-                                Album theo Nghệ sĩ
+                                {t('home_page.album_according_to_artist')}
                             </h2>
                         </div>
                         <PlaylistTracks
