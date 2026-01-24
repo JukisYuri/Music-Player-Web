@@ -82,6 +82,11 @@ python manage.py migrate
 ```
 python manage.py runserver
 ``` 
+**tạo tài khoản admin dùng**
+```
+python manage.py createsuperuser
+```
+
 
 **2. Cài đặt Frontend (React + Vite):**
 
