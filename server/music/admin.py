@@ -58,7 +58,7 @@ def analyze_sentiment_action(modeladmin, request, queryset):
     for comment in queryset:
         label, conf = predictor.predict(comment.content)
         comment.sentiment = label
-        comment.confidence_score = conf
+        # comment.confidence_score = conf
         updated.append(comment)
 
     Comment.objects.bulk_update(updated, ['sentiment', 'confidence_score'])
@@ -68,12 +68,12 @@ def analyze_sentiment_action(modeladmin, request, queryset):
 # --- 3. COMMENT MANAGEMENT (MỚI - QUẢN LÝ BÌNH LUẬN) ---
 @admin.register(Comment)
 class CommentAdmin(ModelAdmin):
-    list_display = ('user', 'song', 'content_short', 'sentiment_badge', 'confidence_fmt', 'created_at')
+    list_display = ('user', 'song', 'content_short', 'sentiment_badge', 'created_at')
     list_filter = ('sentiment', 'created_at', 'song')
     search_fields = ('content', 'user__username', 'song__title')
     autocomplete_fields = ['user', 'song']
     list_per_page = 20
-    readonly_fields = ('created_at', 'confidence_score')
+    readonly_fields = ['created_at']
 
     actions = [analyze_phobert_sentiment,analyze_sentiment_action]
 

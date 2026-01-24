@@ -19,7 +19,7 @@ def analyze_phobert_sentiment(modeladmin, request, queryset):
         if hasattr(obj, 'content'):
             label, score = predictor.predict(obj.content)
             obj.sentiment = label
-            obj.confidence_score = score
+            # obj.confidence_score = score
             obj.save()
             updated_count += 1
 
