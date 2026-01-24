@@ -17,7 +17,7 @@ export function Sidebar() {
     const location = useLocation();
 
     const navigation = [
-        { name: t('Trang Chủ'), href: '/index', icon: Library },
+        { name: t('sidebar.home'), href: '/index', icon: Library },
         { name: t('sidebar.playlists'), href: '/playlist', icon: ListMusic },
         { name: t('sidebar.discover'), href: '/discover', icon: Compass },
     ];

@@ -4,8 +4,10 @@ import { HeaderBar } from '../components/header_bar.jsx';
 import { useAuth } from '../context/auth_context.jsx';
 import { useMusic } from '../context/MusicContext.jsx';
 import { Trophy, Play, MessageCircle, Headphones, Loader2, Crown, Medal } from 'lucide-react';
+import { useTranslation } from "react-i18next";
 
 export function ChartsMusic() {
+    const {t} = useTranslation();
     const { user } = useAuth();
     const { playSong } = useMusic();
     const [data, setData] = useState({ top_played: [], top_commented: [] });
@@ -61,8 +63,8 @@ export function ChartsMusic() {
                         <Trophy size={40} className="text-black" />
                     </div>
                     <div className="relative z-10">
-                        <h1 className="text-4xl font-black mb-1 tracking-tight uppercase italic">Bảng Xếp Hạng</h1>
-                        <p className="text-neutral-400 text-sm font-medium opacity-80">Những giai điệu thịnh hành nhất</p>
+                        <h1 className="text-4xl font-black mb-1 tracking-tight uppercase italic">{t("chart_music.title")}</h1>
+                        <p className="text-neutral-400 text-sm font-medium opacity-80">{t("chart_music.most_listened")}</p>
                     </div>
                 </div>
 
@@ -72,23 +74,23 @@ export function ChartsMusic() {
                         onClick={() => setActiveTab('played')}
                         className={`px-6 py-2 rounded-lg text-xs font-black transition-all flex items-center gap-2 ${activeTab === 'played' ? 'bg-green-500 text-black' : 'text-neutral-500 hover:text-white'}`}
                     >
-                        <Headphones size={16} /> TOP LƯỢT NGHE
+                        <Headphones size={16} /> {t("chart_music.top_listened")}
                     </button>
                     <button
                         onClick={() => setActiveTab('commented')}
                         className={`px-6 py-2 rounded-lg text-xs font-black transition-all flex items-center gap-2 ${activeTab === 'commented' ? 'bg-green-500 text-black' : 'text-neutral-500 hover:text-white'}`}
                     >
-                        <MessageCircle size={16} /> TOP QUAN TÂM
+                        <MessageCircle size={16} /> {t("chart_music.top_cared")}
                     </button>
                 </div>
 
                 {/* Bảng Danh Sách - Cấu trúc lại grid để gọn hơn */}
                 <div className="bg-neutral-900/30 rounded-2xl border border-white/5 overflow-hidden">
                     <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-white/5 text-[10px] font-black text-neutral-500 uppercase tracking-widest">
-                        <div className="col-span-1 text-center">Hạng</div>
-                        <div className="col-span-6">Bài hát</div>
-                        <div className="col-span-3">Nghệ sĩ</div>
-                        <div className="col-span-2 text-right">Dữ liệu</div>
+                        <div className="col-span-1 text-center">{t("chart_music.title")}</div>
+                        <div className="col-span-6">{t("chart_music.rank")}</div>
+                        <div className="col-span-3">{t("chart_music.artist")}</div>
+                        <div className="col-span-2 text-right">{t("chart_music.data")}</div>
                     </div>
 
                     <div className="flex flex-col">

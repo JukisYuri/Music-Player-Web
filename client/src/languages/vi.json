@@ -26,7 +26,8 @@
       "library": "Thư viện",
       "playlists": "Danh sách phát",
       "discover": "Khám phá",
-      "genres": "Chủ Đề và Thể Loại"
+      "genres": "Chủ Đề và Thể Loại",
+      "home": "Trang Chủ"
     },
     "profile": {
       "title": "Hồ Sơ",
@@ -82,7 +83,13 @@
       "title_music": "Tiêu đề",
       "title_artist": "Nghệ sĩ",
       "see_all": "Xem tất cả",
-      "number": "Số"
+      "number": "Số",
+      "welcome": "Chào mừng trở lại",
+      "ready_to_play": "Sẵn sàng phát nhạc",
+      "choose_song": "Chọn bài hát để bắt đầu",
+      "my_play_list": "Danh sách phát của tôi",
+      "operation": "Thao tác",
+      "album_according_to_artist": "Album theo nghệ sĩ"
     },
     "player_bar": {
       "current_song": "Vui lòng chọn bài hát"
@@ -171,5 +178,30 @@
       "artists": "Nghệ sĩ",
       "followed": "Đã theo dõi",
       "follow": "Theo dõi"
+    },
+    "playlist_page": {
+      "my_playlists": "Danh sách phát của tôi",
+      "create_new": "Tạo Playlist mới",
+      "no_playlists": "Bạn chưa có playlist nào. Hãy tạo mới!",
+      "favorite_albums": "Album yêu thích"
+    },
+    "discovery": {
+      "explore": "KHÁM PHÁ MỖI NGÀY",
+      "your_melody": "Giai điệu dành riêng cho bạn",
+      "preparation": "Dựa trên gu âm nhạc của bạn, chúng tôi đã chuẩn bị những bài hát phù hợp nhất cho khoảnh khắc này",
+      "preparation_music": "Đang chuẩn bị âm nhạc..."
+    },
+    "genres": {
+      "title": "Thể loại âm nhạc"
+    },
+    "chart_music": {
+      "title": "Bảng Xếp Hạng",
+      "most_listened": "Những giai điệu thịnh hành nhất",
+      "top_listened": "Top lượt nghe",
+      "top_cared": "Top quan tâm",
+      "rank": "Hạng",
+      "song_title": "Bài hát",
+      "artist": "Nghệ sĩ",
+      "data": "Dữ liệu"
     }
   }
